@@ -22,9 +22,9 @@ AIとユーザーで職務記述書が偽物かどうか予測し、その精度
     ```terminal
     .\.venv\Scripts\Activate.ps1
     ```
-3. SQLiteデータベースを作成
+3. setup.pyでSQLiteデータベースを作成した後、分類モデルを構築
     ```
-    python createDB.py
+    python setup.py
     ```
 4. ローカルサーバーを立てる
     ```terminal
@@ -45,3 +45,4 @@ AIとユーザーで職務記述書が偽物かどうか予測し、その精度
   - データセット: [Real / Fake Job Posting Prediction](https://www.kaggle.com/datasets/shivamb/real-or-fake-fake-jobposting-prediction)
 
 ## チャレンジの軌跡
+2023/12/06 21:45からスタート
