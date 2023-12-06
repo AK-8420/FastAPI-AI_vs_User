@@ -14,7 +14,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
 ターミナルで以下のコードを実行する
 1. リポジトリからデータをダウンロード
     ```terminal
-    git clone ...
+    git clone git@github.com:AK-8420/FastAPI-AI_vs_User.git
     ```
 2. 仮想環境をactivate
 
@@ -44,7 +44,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     - 学習が早く、精度も良いらしいのでXGBoostを採用
   - データセット: [Real / Fake Job Posting Prediction](https://www.kaggle.com/datasets/shivamb/real-or-fake-fake-jobposting-prediction)
 
-## 1時間で実装チャレンジの軌跡
+## 1時間でどこまで実装できるかチャレンジ
 2023/12/06 21:45からスタート
 
 まずタスクの書き出しを行った (10分)
@@ -78,7 +78,8 @@ SQLiteファイルの作成（9分）
 
 結果(ダミー)の返答を実装（10分）
 
-2023/12/06 22:45に終了。1時間では完成しなかった。
+2023/12/06 22:45に終了。
 
 実装していく中で気づいたこと
 - ユーザー回答の送信タイミングで結果を評価するより、結果の表示タイミングで評価した方がAIとタイミングを合わせることができてよさそう。
+- Ruby on Railsみたいにテストを自動化したい
