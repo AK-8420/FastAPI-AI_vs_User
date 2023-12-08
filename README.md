@@ -16,12 +16,12 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     ```terminal
     git clone git@github.com:AK-8420/FastAPI-AI_vs_User.git
     ```
-2. 仮想環境をactivate
+2. 仮想環境を有効化
 
     Windows PowerShellの場合
     ```terminal
+    cd FastAPI-AI_vs_User
     .\.venv\Scripts\Activate.ps1
-    python -m pip install -r requirements.txt
     ```
 3. setup.pyで初期設定を実行
     ```
