@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 
@@ -13,8 +13,9 @@ class RecordCreate(RecordBase):
     pass
 
 class Record(RecordBase):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(
+        from_attributes = True
+    )
 
 
 class PredictionBase(BaseModel):
@@ -26,5 +27,6 @@ class PredictionCreate(PredictionBase):
 class Prediction(PredictionBase):
     quiz_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(
+        from_attributes = True
+    )

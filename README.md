@@ -118,10 +118,12 @@ SQLiteファイルの作成（9分）
 
 [公式チュートリアル](https://fastapi.tiangolo.com/tutorial/sql-databases/)を見ながら実装。
 
-## 詰まりポイント
+## 工夫ポイント
 - 仮想環境フォルダをgitにステージングしたらファイルサイズが大きすぎてpushできなくなった。
   - ステージングする前までcommitを巻き戻して、仮想環境フォルダをgitignoreで除外し解決。
 - 問題文のcsvファイルをPandasのDataFrameとして読み込むか、FastAPIのmodelとして保持するか迷った
   - ChatGPTに聞いてみた。
     - 答え：FastAPIのBaseModel使用は、データのバリデーションとシリアライゼーションに重点を置き、型安全性とAPIの自動ドキュメンテーション生成に適しています。
   - 特にバリデーションを行う予定はないので、Pandasで保持することにした。
+- 公式チュートリアルではpydantic v1を使用していたが、最新のpydantic v2では仕様がいくつか変わっていたため、コピペだとテスト時にWarningが出た
+  - Warning文を見ながらコードを修正して対応した。

@@ -1,15 +1,13 @@
 import time
 import uuid
 import pandas as pd
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 from fastapi import FastAPI, HTTPException
+from sqlalchemy.orm import Session
+
+from models import Record, Prediction
+import schemas
 
 app = FastAPI()
-
-# DB接続用のセッションクラス定義
-engine = create_engine(f"sqlite:///./history.db", echo=True)
-sessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 # 問題文読み込み
 df = pd.read_csv("quiz.csv")
@@ -18,10 +16,42 @@ df.fillna('null', inplace=True) # 空の文字列 -> null
 quiz = df.drop("fraudulent", axis=1)        # 問題文
 quiz_solution = df["fraudulent"].to_numpy() # 解答
 
-temporarytable = {
-    "random-hash-string":True
-}
+#================================
+# データベースとの通信
+#================================
+def get_record(db: Session, record_id: str):
+    return db.query(Record).filter(Record.id == record_id).first()
 
+def get_record_by_username(db: Session, username: str):
+    return db.query(Record).filter(Record.username == username).first()
+
+def get_records(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Record).offset(skip).limit(limit).all()
+
+def create_record(db: Session, record_data: schemas.RecordCreate):
+    new_record = Record(**record_data.dict())
+    db.add(new_record)
+    db.commit()
+    db.refresh(new_record)
+    return new_record
+
+def get_prediction(db: Session, prediction_id: int):
+    return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
+
+def get_predictions(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Prediction).offset(skip).limit(limit).all()
+
+def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
+    new_prediction = Prediction(**prediction_data.dict())
+    db.add(new_prediction)
+    db.commit()
+    db.refresh(new_prediction)
+    return new_prediction
+
+
+#================================
+# バリデーション関数
+#================================
 def is_valid_quiz_id(quiz_id: str):
     try:
         converted_id = int(quiz_id)
@@ -71,13 +101,20 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
 
 @app.get("/result/{result_id}")
 async def get_result(result_id: str):
+    temporarytable = {
+        "random-hash-string": True
+    }
     if result_id not in temporarytable:
         raise HTTPException(status_code=404, detail="Record not found")
         
     # 回答を採点
-    if answer == "Real" and quiz_solution[quiz_id - 1] == 0:
+    r = { # 本来はここでデータベースから戦歴を取得
+        "quiz_id": 1,
+        "user_answer": "Real"
+    }
+    if r["user_answer"] == "Real" and quiz_solution[r["quiz_id"] - 1] == 0:
         isCorrect = True
-    elif answer == "Fake" and quiz_solution[quiz_id - 1] == 1:
+    elif r["user_answer"] == "Fake" and quiz_solution[r["quiz_id"] - 1] == 1:
         isCorrect = True
     else:
         isCorrect = False
