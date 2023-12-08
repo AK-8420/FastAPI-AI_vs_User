@@ -2,60 +2,71 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 app = FastAPI()
 
+# 問題文読み込み
 df = pd.read_csv("quiz.csv")
 df.fillna('null', inplace=True) # 空の文字列 -> null
-quiz = df.drop("fraudulent", axis=1)
-quiz_solution = df["fraudulent"]
+quiz = df.drop("fraudulent", axis=1)        # 問題文
+quiz_solution = df["fraudulent"].to_numpy() # 解答
 
-# test data
-data = {
-    str(i): f"item{i}" for i in range(1, 101)
+temporarytable = {
+    "random-hash-string":True
 }
-data2 = {
-    "random-hash-string": "Correct"
-}
-data3 = {
-    "random-hash-string": "Wrong"
-}
+
+def is_valid_quiz_id(quiz_id: str):
+    try:
+        converted_id = int(quiz_id)
+        if converted_id not in range(1, 101):
+            raise HTTPException(status_code=404, detail="Index out of range (1 - 100)")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid index")
+    return converted_id
+
 
 @app.get("/")
 async def root():
  return {"Hello": "World",}
 
+
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
-    try:
-        id = int(quiz_id)
-        if id not in range(1, 101):
-            raise HTTPException(status_code=404, detail="Index out of range (1 - 100)")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid index")
+    quiz_id = is_valid_quiz_id(quiz_id)
     
     # DataFrameの行を辞書に変換
     quiz_data = quiz.iloc[id-1].to_dict()
 
-    return {"quiz_id": id, "quiz": quiz_data}
+    return {"quiz_id": quiz_id, "quiz": quiz_data}
+
 
 @app.post("/quiz/{quiz_id}")
 async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user"):
-    if int(quiz_id) not in range(1, 101):
-        raise HTTPException(status_code=404, detail="Index out of range")
+    quiz_id = is_valid_quiz_id(quiz_id)
     if not (answer == 'Real' or answer == 'Fake'):
-        raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string.")
+        raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
+    
+    # 回答を採点
+    if answer == "Real" and quiz_solution[quiz_id - 1] == 0:
+        isCorrect = True
+    elif answer == "Fake" and quiz_solution[quiz_id - 1] == 1:
+        isCorrect = True
+    else:
+        isCorrect = False
     
     # 新しい戦歴を作成
     result_hash_id = "random-hash-string"
     date = "unix date"
-    isCorrect = 1 # True=1, False=0
-    
     # ここでDBへ保存
     # ...
 
     return {"result_hash_id": result_hash_id}
 
+
 @app.get("/result/{result_hash_id}")
 async def get_result(result_hash_id: str):
-    if result_hash_id not in data2:
+    if result_hash_id not in temporarytable:
         raise HTTPException(status_code=404, detail="Record not found")
     
-    return {"result_hash_id": result_hash_id, "result_user": data2[result_hash_id], "result_AI": data3[result_hash_id]}
+    return {
+        "result_hash_id": result_hash_id,
+        "result_user": temporarytable[result_hash_id],
+        "result_AI": temporarytable[result_hash_id]
+    }
