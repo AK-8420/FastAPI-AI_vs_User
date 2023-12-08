@@ -36,23 +36,22 @@ Fakedf = df[ df['fraudulent'] == 1 ]
 Realdf = df[ df['fraudulent'] == 0 ]
 
 # 訓練データとテストデータへのランダム分割 (テストデータの偽文書割合50%)
-train_X_Fake, test_X_Fake = train_test_split(Fakedf, test_size=50)
+train_X_Fake, test_Fake = train_test_split(Fakedf, test_size=50)
 train_y_Fake = train_X_Fake['fraudulent']
-test_y_Fake = test_X_Fake['fraudulent']
 train_X_Fake = train_X_Fake.drop('fraudulent', axis=1)
-test_X_Fake = test_X_Fake.drop('fraudulent', axis=1)
 
-train_X_Real, test_X_Real = train_test_split(Realdf, test_size=50)
+train_X_Real, test_Real = train_test_split(Realdf, test_size=50)
 train_y_Real = train_X_Real['fraudulent']
-test_y_Real = test_X_Real['fraudulent']
 train_X_Real = train_X_Real.drop('fraudulent', axis=1)
-test_X_Real = test_X_Real.drop('fraudulent', axis=1)
 
 train_X = pd.concat([train_X_Real, train_X_Fake])
 train_y = pd.concat([train_y_Real, train_y_Fake])
 
-print(df.head())
-print(df.columns)
+# 問題文データの作成
+testdf = pd.concat([test_Real, test_Fake])
+shuffled_df = testdf.sample(frac=1).reset_index(drop=True) #ランダムシャッフル
+shuffled_df.to_csv('quiz.csv', index=False)
+
 #================================
 # モデルの構築
 #================================
