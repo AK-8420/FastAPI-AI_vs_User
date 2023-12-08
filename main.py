@@ -23,9 +23,21 @@ async def root():
 
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
-    if int(quiz_id) not in range(1, 101):
-        raise HTTPException(status_code=404, detail="Index out of range")
-    return {"quiz_id": int(quiz_id), "quiz": data[quiz_id]}
+    try:
+        id = int(quiz_id)
+        if id not in range(1, 101):
+            raise HTTPException(status_code=404, detail="Index out of range (1 - 100)")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid index")
+    
+    # DataFrameの行を辞書に変換
+    quiz_data = quiz.iloc[id-1].to_dict()
+    # NaNをnullに変換
+    for key, value in quiz_data.items():
+        if pd.isna(value):
+            quiz_data[key] = "null"
+
+    return {"quiz_id": id, "quiz": quiz_data}
 
 @app.post("/quiz/{quiz_id}")
 async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user"):
