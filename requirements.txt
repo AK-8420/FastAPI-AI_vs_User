@@ -4,3 +4,7 @@ scikit-learn
 pandas
 numpy
 xgboost
+pytest
+httpx
+sqlalchemy
+pydantic
