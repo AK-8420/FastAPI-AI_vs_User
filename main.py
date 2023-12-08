@@ -1,7 +1,7 @@
-import time
-import uuid
+import random
+
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 import CRUD, models, schemas
@@ -10,6 +10,15 @@ from setup_dataset import quiz, quiz_solution
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 # バリデーション関数
 def is_valid_quiz_id(quiz_id: str):
@@ -27,60 +36,56 @@ async def root():
  return {"Hello": "World",}
 
 
-@app.get("/quiz/{quiz_id}")
-async def get_quiz(quiz_id: str):
-    quiz_id = is_valid_quiz_id(quiz_id)
-    
-    # DataFrameの行を辞書に変換
+# ランダムに問題を出題
+@app.get("/quiz")
+async def get_quiz():
+    quiz_id = random.randint(1, 100)
     quiz_data = quiz.iloc[quiz_id - 1].to_dict()
-
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
 
-@app.post("/quiz/{quiz_id}")
-async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user"):
+# 特定の問題を閲覧
+@app.get("/quiz/{quiz_id}")
+async def get_quiz(quiz_id: str):
     quiz_id = is_valid_quiz_id(quiz_id)
-    if not (answer == 'Real' or answer == 'Fake'):
+    quiz_data = quiz.iloc[quiz_id - 1].to_dict()
+    return {"quiz_id": quiz_id, "quiz": quiz_data}
+
+
+# ユーザーの回答を送信
+@app.post("/quiz", response_model=schemas.Record)
+async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db)):
+    if CRUD.get_prediction(db, record.quiz_id) == None:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+
+    if not (record.user_answer == 'Real' or record.user_answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
-    
-    # 新しい戦歴を作成
-    result_id = uuid.uuid4()
-    record = {
-        "id": result_id,
-        "quiz_id": quiz_id,
-        "created_at": int(time.time()), # UNIX datetime
-        "username": username,
-        "user_answer": answer
-    }
-    
-    # データベースに保存
-    # ...
 
-    return {"result_id": result_id}
+    return CRUD.create_record(db=db, record_data=record_data)
 
 
+# クイズの結果を取得
 @app.get("/result/{result_id}")
-async def get_result(result_id: str):
-    temporarytable = {
-        "random-hash-string": True
-    }
-    if result_id not in temporarytable:
+async def get_result(result_id: str, db: Session = Depends(get_db)):
+    record = get_record(db, result_id)
+    if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
+
+    predicted = record.AI_answer.predicted_as
+    if predicted == None:
+        raise HTTPException(status_code=404, detail="Prediction by AI not found")
         
-    # 回答を採点
-    r = { # 本来はここでデータベースから戦歴を取得
-        "quiz_id": 1,
-        "user_answer": "Real"
-    }
-    if r["user_answer"] == "Real" and quiz_solution[r["quiz_id"] - 1] == 0:
+    if record.user_answer == "Real" and quiz_solution[record.quiz_id - 1] == 0:
         isCorrect = True
-    elif r["user_answer"] == "Fake" and quiz_solution[r["quiz_id"] - 1] == 1:
+    elif record.user_answer == "Fake" and quiz_solution[record.quiz_id - 1] == 1:
         isCorrect = True
     else:
         isCorrect = False
     
+    result_battle = "win"
+    
     return {
-        "result_id": result_id,
-        "result_user": temporarytable[result_id],
-        "result_AI": temporarytable[result_id]
+        "result_battle": result_battle,
+        "result_user": isCorrect,
+        "result_AI": predicted
     }

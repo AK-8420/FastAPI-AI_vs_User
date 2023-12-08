@@ -1,17 +1,25 @@
+import time
+import uuid
 from pydantic import BaseModel, ConfigDict
 
 
 class RecordBase(BaseModel):
-    id: str # インクリメンタルではなくデータ生成時に指定するためここに追加
     quiz_id: int
     user_answer: str
-    username: str
-    created_at: int
+    username: str = "Unknown user"
 
 class RecordCreate(RecordBase):
-    pass
+    id: str = None
+    created_at: int = None
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.id = str(uuid.uuid4())
+        self.created_at = int(time.time())
 
 class Record(RecordBase):
+    id: str
+
     model_config = ConfigDict(
         from_attributes = True
     )
