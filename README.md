@@ -21,7 +21,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     Windows PowerShellの場合
     ```terminal
     .\.venv\Scripts\Activate.ps1
-    pip install -r requirements.txt
+    python -m pip install -r requirements.txt
     ```
 3. setup.pyで初期設定を実行
     ```
