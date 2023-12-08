@@ -60,7 +60,7 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
     if not (record.user_answer == 'Real' or record.user_answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
 
-    return CRUD.create_record(db=db, record_data=record_data)
+    return CRUD.create_record(db=db, record_data=record)
 
 
 # クイズの結果を取得

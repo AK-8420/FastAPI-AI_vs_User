@@ -11,7 +11,7 @@ class Record(Base):
     id = Column(String, primary_key=True, index=True)
     quiz_id = Column(Integer, ForeignKey('predictions.quiz_id'), index=True)
     user_answer = Column(String)
-    username = Column(String, unique=True, index=True)
+    username = Column(String, index=True)
     created_at = Column(Integer)
 
     AI_answer = relationship("Prediction", back_populates="records")
