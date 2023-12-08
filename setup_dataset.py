@@ -46,8 +46,10 @@ test_y = testdf['fraudulent']
 #================================
 # モデルの構築
 #================================
+print("Now learning...")
 # 学習
 # model = ...
+print("Completed.")
 
 # 予測
 # predicted = model.predicted(test_X)
