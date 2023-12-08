@@ -27,14 +27,29 @@ print(f"データベース '{db_file_name}' が作成されました")
 #================================
 # データ準備
 #================================
-df = pd.read_csv("fake_job_posting.csv")
-df = df.drop("job_id") # job_id = 0,1,2,... 学習価値なし
+df = pd.read_csv("fake_job_postings.csv")
+df = df.drop("job_id", axis=1) # job_id = 0,1,2,... 学習価値なし
 
-# 訓練データとテストデータへの分割
-Fakedf = df[ df_['fraudulent'] == 1 ]
-Realdf = df[ df_['fraudulent'] == 0 ]
+# 偽文書と本物文書
+Fakedf = df[ df['fraudulent'] == 1 ]
+Realdf = df[ df['fraudulent'] == 0 ]
 
-test_X = train_test_split(Fakedf, testsize=100)
+# 訓練データとテストデータへのランダム分割 (テストデータの偽文書割合50%)
+train_X_Fake, test_X_Fake = train_test_split(Fakedf, test_size=50)
+train_y_Fake = train_X_Fake['fraudulent']
+test_y_Fake = test_X_Fake['fraudulent']
+train_X_Fake = train_X_Fake.drop('fraudulent', axis=1)
+test_X_Fake = test_X_Fake.drop('fraudulent', axis=1)
+
+train_X_Real, test_X_Real = train_test_split(Realdf, test_size=50)
+train_y_Real = train_X_Real['fraudulent']
+test_y_Real = test_X_Real['fraudulent']
+train_X_Real = train_X_Real.drop('fraudulent', axis=1)
+test_X_Real = test_X_Real.drop('fraudulent', axis=1)
+
+train_X = pd.concat([train_X_Real, train_X_Fake])
+train_y = pd.concat([train_y_Real, train_y_Fake])
+
 
 #================================
 # モデルの構築
