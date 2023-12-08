@@ -7,15 +7,15 @@ class RecordBase(BaseModel):
     quiz_id: int
     user_answer: str
     username: str = "Unknown user"
+    created_at: int = None
 
 class RecordCreate(RecordBase):
     id: str = None
-    created_at: int = None
     
     def __init__(self, **data):
         super().__init__(**data)
         self.id = str(uuid.uuid4())
-        self.created_at = int(time.time())
+        self.created_at = self.created_at or int(time.time())
 
 class Record(RecordBase):
     id: str

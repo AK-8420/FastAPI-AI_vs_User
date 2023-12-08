@@ -44,6 +44,7 @@ print(f"Test data is created.")
 # モデルの構築
 #================================
 db = SessionLocal()
+db.query(models.Prediction).delete()
 for i in range(100):
     prediction_data = schemas.PredictionCreate(predicted_as="Real")
     CRUD.create_prediction(db, prediction_data)
