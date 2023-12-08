@@ -1,5 +1,10 @@
+import pandas as pd
 from fastapi import FastAPI, HTTPException
 app = FastAPI()
+
+df = pd.read_csv("quiz.csv")
+quiz = df.drop("fraudulent", axis=1)
+quiz_solution = df["fraudulent"]
 
 # test data
 data = {
@@ -18,14 +23,14 @@ async def root():
 
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
-    if quiz_id not in data:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return {"quiz_id": quiz_id, "quiz": data[quiz_id]}
+    if int(quiz_id) not in range(1, 101):
+        raise HTTPException(status_code=404, detail="Index out of range")
+    return {"quiz_id": int(quiz_id), "quiz": data[quiz_id]}
 
 @app.post("/quiz/{quiz_id}")
 async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user"):
-    if quiz_id not in data:
-        raise HTTPException(status_code=404, detail="Item not found")
+    if int(quiz_id) not in range(1, 101):
+        raise HTTPException(status_code=404, detail="Index out of range")
     if not (answer == 'Real' or answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string.")
     

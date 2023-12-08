@@ -11,20 +11,18 @@ def test_read_main():
 def test_get_collectID_1():
     quiz_id = 1
     response = client.get(f"/quiz/{quiz_id}")
+    response_json = response.json()
     assert response.status_code == 200
-    assert response.json() == {
-        "quiz_id": str(quiz_id),
-        "quiz": f"item{quiz_id}"
-    }
+    assert isinstance(response_json["quiz_id"], int)
+    assert response_json["quiz_id"] == quiz_id
 
 def test_get_collectID_2():
     quiz_id = 100
     response = client.get(f"/quiz/{quiz_id}")
+    response_json = response.json()
     assert response.status_code == 200
-    assert response.json() == {
-        "quiz_id": str(quiz_id),
-        "quiz": f"item{quiz_id}"
-    }
+    assert isinstance(response_json["quiz_id"], int)
+    assert response_json["quiz_id"] == quiz_id
 
 def test_get_wrongID():
     quiz_id = -1

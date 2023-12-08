@@ -111,3 +111,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS battle_records (
 ```
 
 仮想環境フォルダをgitにステージングしたらファイルサイズが大きすぎてpushできなくなった。ステージングする前までcommitを巻き戻して、仮想環境フォルダをgitignoreで除外し解決。
+
+問題文のcsvファイルをPandasのDataFrameとして読み込むか、FastAPIのmodelとして保持するか迷ったのでChatGPTに聞いてみた。
+- FastAPIのBaseModel使用は、データのバリデーションとシリアライゼーションに重点を置き、型安全性とAPIの自動ドキュメンテーション生成に適しています。
+
+特にバリデーションを行う予定はないので、Pandasで保持することにした。
