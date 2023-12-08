@@ -53,14 +53,6 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
     if not (answer == 'Real' or answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
     
-    # 回答を採点
-    if answer == "Real" and quiz_solution[quiz_id - 1] == 0:
-        isCorrect = True
-    elif answer == "Fake" and quiz_solution[quiz_id - 1] == 1:
-        isCorrect = True
-    else:
-        isCorrect = False
-    
     # 新しい戦歴を作成
     result_id = uuid.uuid4()
     record = {
@@ -81,6 +73,14 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
 async def get_result(result_id: str):
     if result_id not in temporarytable:
         raise HTTPException(status_code=404, detail="Record not found")
+        
+    # 回答を採点
+    if answer == "Real" and quiz_solution[quiz_id - 1] == 0:
+        isCorrect = True
+    elif answer == "Fake" and quiz_solution[quiz_id - 1] == 1:
+        isCorrect = True
+    else:
+        isCorrect = False
     
     return {
         "result_id": result_id,
