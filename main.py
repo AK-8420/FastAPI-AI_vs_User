@@ -1,9 +1,15 @@
 import time
 import uuid
 import pandas as pd
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
+
+# DB接続用のセッションクラス定義
+engine = create_engine(f"sqlite:///./history.db", echo=True)
+sessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 # 問題文読み込み
 df = pd.read_csv("quiz.csv")
@@ -57,9 +63,15 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
     
     # 新しい戦歴を作成
     result_id = uuid.uuid4()
-    date = int(time.time()) # UNIX datetime
+    record = {
+        "id": result_id,
+        "quiz_id": quiz_id,
+        "created_at": int(time.time()), # UNIX datetime
+        "username": username,
+        "user_answer": answer
+    }
     
-    # ここでDBへ保存
+    # データベースに保存
     # ...
 
     return {"result_id": result_id}

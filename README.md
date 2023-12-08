@@ -39,6 +39,8 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
   - uvicorn
   - SQLite
     - PostgreSQLも候補だったがサーバー複数にする予定はないのでこれで十分
+  - SQLAlchemy
+    - 接続プール管理をしてくれる
 - AI
   - scikit-learn
   - xgboost
