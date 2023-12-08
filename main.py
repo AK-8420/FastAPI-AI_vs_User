@@ -1,5 +1,8 @@
+import time
+import uuid
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+
 app = FastAPI()
 
 # 問題文読み込み
@@ -53,21 +56,22 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
         isCorrect = False
     
     # 新しい戦歴を作成
-    result_hash_id = "random-hash-string"
-    date = "unix date"
+    result_id = uuid.uuid4()
+    date = int(time.time()) # UNIX datetime
+    
     # ここでDBへ保存
     # ...
 
-    return {"result_hash_id": result_hash_id}
+    return {"result_id": result_id}
 
 
-@app.get("/result/{result_hash_id}")
-async def get_result(result_hash_id: str):
-    if result_hash_id not in temporarytable:
+@app.get("/result/{result_id}")
+async def get_result(result_id: str):
+    if result_id not in temporarytable:
         raise HTTPException(status_code=404, detail="Record not found")
     
     return {
-        "result_hash_id": result_hash_id,
-        "result_user": temporarytable[result_hash_id],
-        "result_AI": temporarytable[result_hash_id]
+        "result_id": result_id,
+        "result_user": temporarytable[result_id],
+        "result_AI": temporarytable[result_id]
     }
