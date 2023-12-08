@@ -45,7 +45,19 @@ print(f"Test data is created.")
 #================================
 db = SessionLocal()
 db.query(models.Prediction).delete()
-for i in range(100):
-    prediction_data = schemas.PredictionCreate(predicted_as="Real")
+
+# 学習
+# model = ...
+
+# 予測結果の保存
+# predicted = model.predicted(test_X)
+import random
+predicted = [random.randint(0,1)]*100
+
+for p in predicted:
+    if p == 1:
+        prediction_data = schemas.PredictionCreate(predicted_as="Fake")
+    else:
+        prediction_data = schemas.PredictionCreate(predicted_as="Real")
     CRUD.create_prediction(db, prediction_data)
 db.close()
