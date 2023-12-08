@@ -109,3 +109,5 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS battle_records (
     user_answer INTEGER NOT NULL
 )''')
 ```
+
+仮想環境フォルダをgitにステージングしたらファイルサイズが大きすぎてpushできなくなった。ステージングする前までcommitを巻き戻して、仮想環境フォルダをgitignoreで除外し解決。
