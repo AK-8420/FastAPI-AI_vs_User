@@ -27,8 +27,8 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     python setup.py
     ```
 4. ローカルサーバーを立てる
-    ```terminal
-    uvicorn main:app --reload
+    ```python
+    python -m uvicorn main:app --reload
     ```
 5. [http://128.0.0.1/docs](http://128.0.0.1/)でアクセスポイントの確認
 
@@ -80,8 +80,12 @@ SQLiteファイルの作成（9分）
 
 2023/12/06 22:45に終了。対決機能の枠組みだけ完成するという結果になった。
 
+![screen shot](images_for_README/ss01.png?raw=true)
+
 ## 1時間実装していく中で思ったこと
 - ユーザー回答の送信タイミングで回答の正否を評価するか、結果の表示タイミングで評価するか迷った
   - 結果の表示時の方がひとつの関数につきひとつの機能を備えるようになってよさそうと最終的に判断。
 - 問題文（テストデータ）が固定なので、AIにはセットアップ時に事前に全問の回答を考えさせた方が処理時間の削減になるだろう
 - Ruby on Railsみたいにテストを自動化したい
+
+## 1時間ごとの進捗 Part.2
