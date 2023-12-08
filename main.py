@@ -3,7 +3,7 @@ app = FastAPI()
 
 # test data
 data = {
-    str(i): f"item{i}" for i in range(1, 81)
+    str(i): f"item{i}" for i in range(1, 101)
 }
 data2 = {
     "random-hash-string": "Correct"

@@ -18,7 +18,7 @@ def test_get_collectID_1():
     }
 
 def test_get_collectID_2():
-    quiz_id = 80
+    quiz_id = 100
     response = client.get(f"/quiz/{quiz_id}")
     assert response.status_code == 200
     assert response.json() == {
@@ -40,7 +40,7 @@ def test_post_collectID_1():
     }
 
 def test_post_collectID_2():
-    quiz_id = 80
+    quiz_id = 100
     response = client.post(f"/quiz/{quiz_id}?answer=Fake")
     assert response.status_code == 200
     assert response.json() == {

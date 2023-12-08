@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 db_file_name = "history.db"
 
@@ -32,6 +33,8 @@ df = df.drop("job_id") # job_id = 0,1,2,... 学習価値なし
 # 訓練データとテストデータへの分割
 Fakedf = df[ df_['fraudulent'] == 1 ]
 Realdf = df[ df_['fraudulent'] == 0 ]
+
+test_X = train_test_split(Fakedf, testsize=100)
 
 #================================
 # モデルの構築
