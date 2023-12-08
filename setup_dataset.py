@@ -1,6 +1,12 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
+import CRUD, schemas, models
+from setup_database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 #================================
 # データ準備
@@ -37,3 +43,8 @@ print(f"Test data is created.")
 #================================
 # モデルの構築
 #================================
+db = SessionLocal()
+for i in range(100):
+    prediction_data = schemas.PredictionCreate(predicted_as="Real")
+    CRUD.create_prediction(db, prediction_data)
+db.close()

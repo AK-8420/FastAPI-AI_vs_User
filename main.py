@@ -5,13 +5,12 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 import CRUD, models, schemas
-from setup_database import SessionLocal, engine
+from setup_database import SessionLocal
 from setup_dataset import quiz, quiz_solution
 
-models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
-# Dependency
+# 各エンドポイントの処理前後のデータベース接続管理
 def get_db():
     db = SessionLocal()
     try:
@@ -67,7 +66,7 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
 # クイズの結果を取得
 @app.get("/result/{result_id}")
 async def get_result(result_id: str, db: Session = Depends(get_db)):
-    record = get_record(db, result_id)
+    record = CRUD.get_record(db, result_id)
     if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
 
