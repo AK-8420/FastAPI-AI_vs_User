@@ -27,7 +27,7 @@ async def post_answer(quiz_id: str, answer: str, username: str = "Unknown user")
     if quiz_id not in data:
         raise HTTPException(status_code=404, detail="Item not found")
     if not (answer == 'Real' or answer == 'Fake'):
-        raise HTTPException(status_code=422, detail="Invalid answer was submitted.")
+        raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string.")
     
     # 新しい戦歴を作成
     result_hash_id = "random-hash-string"

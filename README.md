@@ -21,6 +21,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     Windows PowerShellの場合
     ```terminal
     .\.venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
     ```
 3. setup.pyで初期設定を実行
     ```
@@ -89,3 +90,22 @@ SQLiteファイルの作成（9分）
 - Ruby on Railsみたいにテストを自動化したい
 
 ## 1時間ごとの進捗 Part.2
+目標：本物の問題文の取得、戦歴のデータベースへの代入
+
+test.py
+- 問題文IDが1～80のとき正常に取得できるか？
+- 問題文IDが範囲から外れるとき例外が返るか？
+- ユーザー解答がフォーマットにそぐわないとき例外が返るか？
+- 結果IDがデータベースに存在するとき戦歴を正常に取得できるか？
+- 結果IDがデータベースに存在しないとき例外が返るか？
+
+テーブル構成を変更。戦歴に問題文IDやユーザーの回答を載せることで、後に統計的な分析ができるようにする。
+```
+cursor.execute('''CREATE TABLE IF NOT EXISTS battle_records (
+    id TEXT PRIMARY KEY,
+    quiz_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    username TEXT,
+    user_answer INTEGER NOT NULL
+)''')
+```

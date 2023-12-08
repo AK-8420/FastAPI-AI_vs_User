@@ -9,9 +9,10 @@ cursor = conn.cursor()
 # 戦歴テーブルの作成
 cursor.execute('''CREATE TABLE IF NOT EXISTS battle_records (
     id TEXT PRIMARY KEY,
-    datetime INTEGER NOT NULL,
+    quiz_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
     username TEXT,
-    win INTEGER NOT NULL
+    user_answer INTEGER NOT NULL
 )''')
 
 conn.commit()
