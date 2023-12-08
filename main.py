@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 app = FastAPI()
 
 df = pd.read_csv("quiz.csv")
+df.fillna('null', inplace=True) # 空の文字列 -> null
 quiz = df.drop("fraudulent", axis=1)
 quiz_solution = df["fraudulent"]
 
@@ -32,10 +33,6 @@ async def get_quiz(quiz_id: str):
     
     # DataFrameの行を辞書に変換
     quiz_data = quiz.iloc[id-1].to_dict()
-    # NaNをnullに変換
-    for key, value in quiz_data.items():
-        if pd.isna(value):
-            quiz_data[key] = "null"
 
     return {"quiz_id": id, "quiz": quiz_data}
 
