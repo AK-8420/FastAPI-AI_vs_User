@@ -5,6 +5,7 @@ app = FastAPI()
 # 問題文読み込み
 df = pd.read_csv("quiz.csv")
 df.fillna('null', inplace=True) # 空の文字列 -> null
+
 quiz = df.drop("fraudulent", axis=1)        # 問題文
 quiz_solution = df["fraudulent"].to_numpy() # 解答
 
@@ -32,7 +33,7 @@ async def get_quiz(quiz_id: str):
     quiz_id = is_valid_quiz_id(quiz_id)
     
     # DataFrameの行を辞書に変換
-    quiz_data = quiz.iloc[id-1].to_dict()
+    quiz_data = quiz.iloc[quiz_id - 1].to_dict()
 
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
