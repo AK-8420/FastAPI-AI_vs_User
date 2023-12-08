@@ -1,25 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-
-#================================
-# SQLiteデータベース作成
-#================================
-db_name = "history"
-
-SQLALCHEMY_DATABASE_URL = f"sqlite:///./{db_name}.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False} # 複数のスレッド通信をSQLiteに許可
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
 
 
 #================================
@@ -42,13 +22,15 @@ train_X_Real, test_Real = train_test_split(Realdf, test_size=50)
 train_y_Real = train_X_Real['fraudulent']
 train_X_Real = train_X_Real.drop('fraudulent', axis=1)
 
+# 訓練データ
 train_X = pd.concat([train_X_Real, train_X_Fake])
 train_y = pd.concat([train_y_Real, train_y_Fake])
 
-# 問題文データの作成
+# テストデータ
 testdf = pd.concat([test_Real, test_Fake])
 shuffled_df = testdf.sample(frac=1).reset_index(drop=True) #ランダムシャッフル
-shuffled_df.to_csv('./quiz.csv', index=False, mode='w')
+quiz = shuffled_df.drop("fraudulent", axis=1)        # 問題文
+quiz_solution = shuffled_df["fraudulent"].to_numpy() # 解答
 
 print(f"Test data is created.")
 
