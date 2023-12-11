@@ -1,7 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from fastapi import Depends
-from sqlalchemy.orm import Session
 
 import CRUD, schemas, models
 from setup_database import SessionLocal, engine
