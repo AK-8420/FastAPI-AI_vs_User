@@ -10,3 +10,5 @@ sqlalchemy
 pydantic
 matplotlib
 nltk
+transformers
+torch
