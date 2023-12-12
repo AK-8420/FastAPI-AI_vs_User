@@ -98,7 +98,8 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     predicted = record.AI_answer.predicted_as
     if predicted == None:
         raise HTTPException(status_code=404, detail="Prediction by AI not found")
-        
+    
+    # ユーザーの回答が正しいか判定
     if record.user_answer == "Real" and data.solutions[record.quiz_id - 1] == 0:
         isCorrect = True
     elif record.user_answer == "Fake" and data.solutions[record.quiz_id - 1] == 1:
@@ -106,6 +107,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     else:
         isCorrect = False
     
+    # ここで勝敗判定する
     result_battle = "win"
     
     return {
