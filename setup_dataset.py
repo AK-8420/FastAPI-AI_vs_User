@@ -45,11 +45,12 @@ def encoder_education(text):
     }
     return int_convert(education_levels.get(text, np.nan))
 
-def split_columns_salary(df):
+def split_columns_salary(df: pd.DataFrame):
     df['salary_lower'] = df['salary_range'].str.split('-').str[0].apply(int_convert)
     df['salary_upper'] = df['salary_range'].str.split('-').str[1].apply(int_convert)
     df = df.drop('salary_range', axis=1)
     return df
+
 
 #================================
 # データセット管理クラス
@@ -101,7 +102,6 @@ class Dataset:
         df['required_education'] = df['required_education'].apply(encoder_education)
 
         # 給料範囲を上限と下限の2つのカラムに分ける
-        df = split_columns_salary(df)
         df = split_columns_salary(df)
 
         # 不要な列の削除
