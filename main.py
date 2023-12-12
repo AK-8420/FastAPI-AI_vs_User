@@ -1,14 +1,35 @@
 import random
 
-import pandas as pd
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-import CRUD, models, schemas
-from setup_database import SessionLocal
-from setup_dataset import quiz, quiz_solution
+import CRUD, models, schemas, AI
+from setup_database import SessionLocal, engine
+from setup_dataset import Dataset
 
+# データベースにテーブル作成
+models.Base.metadata.create_all(bind=engine)
+
+# 訓練データと本番データの作成
+data = Dataset()
+
+# トレーニング済モデルを取得
+tree_model = AI.get_trained_model(data.train_X, data.train_y, data.test_y, data.test_y)
+
+# 事前予測結果の保存
+db = SessionLocal()
+db.query(models.Prediction).delete() # デバッグ用：古い予測結果の削除
+for p in AI.get_predictions(tree_model):
+    if p == 1:
+        prediction_data = schemas.PredictionCreate(predicted_as="Fake")
+    else:
+        prediction_data = schemas.PredictionCreate(predicted_as="Real")
+    CRUD.create_prediction(db, prediction_data)
+db.close()
+
+# APIインスタンス作成
 app = FastAPI()
+
 
 # 各エンドポイントの処理前後のデータベース接続管理
 def get_db():
@@ -39,7 +60,9 @@ async def root():
 @app.get("/quiz")
 async def get_quiz():
     quiz_id = random.randint(1, 100)
-    quiz_data = quiz.iloc[quiz_id - 1].to_dict()
+    quiz_data = data.problems.iloc[quiz_id - 1]
+    quiz_data = quiz_data.fillna('') # JsonにNaNは入れられない
+    quiz_data = quiz_data.to_dict()
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
 
@@ -47,7 +70,9 @@ async def get_quiz():
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
     quiz_id = is_valid_quiz_id(quiz_id)
-    quiz_data = quiz.iloc[quiz_id - 1].to_dict()
+    quiz_data = data.problems.iloc[quiz_id - 1]
+    quiz_data = quiz_data.fillna('') # JsonにNaNは入れられない
+    quiz_data = quiz_data.to_dict()
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
 
@@ -74,9 +99,9 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     if predicted == None:
         raise HTTPException(status_code=404, detail="Prediction by AI not found")
         
-    if record.user_answer == "Real" and quiz_solution[record.quiz_id - 1] == 0:
+    if record.user_answer == "Real" and data.solutions[record.quiz_id - 1] == 0:
         isCorrect = True
-    elif record.user_answer == "Fake" and quiz_solution[record.quiz_id - 1] == 1:
+    elif record.user_answer == "Fake" and data.solutions[record.quiz_id - 1] == 1:
         isCorrect = True
     else:
         isCorrect = False
