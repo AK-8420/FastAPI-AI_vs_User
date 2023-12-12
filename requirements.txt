@@ -8,3 +8,7 @@ pytest
 httpx
 sqlalchemy
 pydantic
+matplotlib
+nltk
+transformers
+torch
