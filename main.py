@@ -1,6 +1,5 @@
 import random
 import os
-import atexit
 import sys
 
 import xgboost as xgb
@@ -72,16 +71,6 @@ def get_db():
         db.close()
 
 
-# バリデーション関数
-def is_valid_quiz_id(quiz_id: str):
-    try:
-        converted_id = int(quiz_id)
-        if converted_id not in range(1, 101):
-            raise HTTPException(status_code=404, detail="Index out of range (1 - 100)")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid index")
-    return converted_id
-
 
 @app.get("/")
 async def root():
@@ -90,28 +79,31 @@ async def root():
 
 # ランダムに問題を出題
 @app.get("/quiz")
-async def get_quiz():
-    quiz_id = random.randint(1, 100)
-    quiz_data = data.problems.iloc[quiz_id - 1]
-    quiz_data = quiz_data.fillna('') # JsonにNaNは入れられない
-    quiz_data = quiz_data.to_dict()
+async def get_quiz(db: Session = Depends(get_db)):
+    quiz_id = random.randint(0, CRUD.get_quiz_count(db) - 1)
+    quiz_data = CRUD.get_quiz(db, quiz_id=quiz_id)
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
 
 # 特定の問題を閲覧
 @app.get("/quiz/{quiz_id}")
-async def get_quiz(quiz_id: str):
-    quiz_id = is_valid_quiz_id(quiz_id)
-    quiz_data = data.problems.iloc[quiz_id - 1]
-    quiz_data = quiz_data.fillna('') # JsonにNaNは入れられない
-    quiz_data = quiz_data.to_dict()
+async def get_quiz(quiz_id: str, db: Session = Depends(get_db)):
+    # バリデーション
+    try:
+        converted_id = int(quiz_id)
+        if converted_id not in range(CRUD.get_quiz_count(db)):
+            raise HTTPException(status_code=404, detail="Index is out of range")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid index")
+    
+    quiz_data = CRUD.get_quiz(db, quiz_id=quiz_id)
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
 
 # ユーザーの回答を送信
 @app.post("/quiz", response_model=schemas.Record)
 async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db)):
-    if CRUD.get_prediction(db, record.quiz_id) == None:
+    if CRUD.get_quiz(db, record.quiz_id) == None:
         raise HTTPException(status_code=404, detail="Quiz not found")
 
     if not (record.user_answer == 'Real' or record.user_answer == 'Fake'):
