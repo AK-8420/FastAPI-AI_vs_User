@@ -53,7 +53,8 @@ else:
         CRUD.create_quiz(db, schemas.QuizCreate(quiz))
 
     # 事前予測結果の保存
-    for i, p in enumerate(AI.get_predictions(tree_model)):
+    quizset = db.query(models.Quiz).all()   # すべての問題文
+    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
         prediction_data = schemas.PredictionCreate(quiz_id=i, predicted_as=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()

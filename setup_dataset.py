@@ -52,7 +52,7 @@ def split_columns_salary(df: pd.DataFrame):
     df = df.drop('salary_range', axis=1)
     return df
 
-def preprocessing(df, embedding_model):
+def preprocessing(df):
     # 要求経歴レベルを、文字列から数値に変換
     df['required_experience'] = df['required_experience'].apply(encoder_experience)
     df['required_education'] = df['required_education'].apply(encoder_education)

@@ -25,6 +25,7 @@ def get_predictions(trained_model, quizset):
     print("Now getting predictions...")
 
     df = pd.read_sql(quizset)
+    df = df.drop("id", axis=1)
     df = df.drop("fraudulent", axis=1)
     test_X = preprocessing(df)
     predicted = trained_model.predicted(test_X)
