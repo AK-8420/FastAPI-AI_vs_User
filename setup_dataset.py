@@ -70,7 +70,10 @@ def preprocessing(df):
     # GPUが使えたら使う
     device = "cpu"
     if torch.cuda.is_available():
+        print("GPU will be used.")
         device = "cuda"
+    else:
+        print("CPU will be used.")
     embedding_model.to(device)
     
     # 文字列をembedding
