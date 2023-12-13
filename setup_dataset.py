@@ -66,12 +66,12 @@ def preprocessing(df):
     processed_df = copy.deepcopy(df[selected_columns])
 
     # 学習済みembeddingsモデルを外部からダウンロード
-    emb_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
+    embedding_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
     # GPUが使えたら使う
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda"
-    emb_model.to(device)
+    embedding_model.to(device)
     
     # 文字列をembedding
     for tc in text_columns:
