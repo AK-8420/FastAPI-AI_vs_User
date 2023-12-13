@@ -1,6 +1,7 @@
 import copy
 import pandas as pd
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split
 from transformers import AutoModel
 
@@ -57,6 +58,14 @@ def split_columns_salary(df: pd.DataFrame):
 #================================
 class Dataset:
     def __init__(self):
+        # 学習済みembeddingsモデルを外部からダウンロード
+        self.emb_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
+        # GPUが使えたら使う
+        device = "cpu"
+        if torch.cuda.is_available():
+            device = "cuda"
+        self.emb_model.to(device)
+
         df = pd.read_csv("./fake_job_postings.csv")
         df = df.drop("job_id", axis=1) # job_id = 0,1,2,... 学習価値なし
 
@@ -64,33 +73,23 @@ class Dataset:
         Fakedf = df[ df['fraudulent'] == 1 ]
         Realdf = df[ df['fraudulent'] == 0 ]
 
-        # 問題文データのランダム抽出 (偽文書割合50%)
+        # テストデータのランダム抽出 (偽文書割合50%)
         detaset_Fake, quiz_Fake = train_test_split(Fakedf, test_size=50)
         detaset_Real, quiz_Real = train_test_split(Realdf, test_size=50)
 
-        # 問題文データをランダムシャッフルして保存
+        # テストデータをランダムシャッフルして保存
         quizdf = pd.concat([quiz_Real, quiz_Fake])
         self.quizdf = quizdf.sample(frac=1).reset_index(drop=True)
 
-        # 訓練データとテストデータへの分割 (テストデータ25%)
-        train_Fake, test_Fake = train_test_split(detaset_Fake)
-        train_Real, test_Real = train_test_split(detaset_Real)
-        traindf = pd.concat([train_Real, train_Fake])
-        testdf = pd.concat([test_Real, test_Fake])
+        # 訓練データもランダムシャッフル
+        traindf = pd.concat([detaset_Fake, detaset_Real])
         traindf = traindf.sample(frac=1).reset_index(drop=True)
-        testdf = testdf.sample(frac=1).reset_index(drop=True)
 
-        self.train_y = testdf['fraudulent']
-        self.test_y = testdf['fraudulent']
-        train_X = testdf.drop('fraudulent', axis=1)
-        test_X = testdf.drop('fraudulent', axis=1)
-        
-        # 学習済みembeddingsモデルを外部からダウンロード
-        self.emb_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
+        self.train_y = traindf['fraudulent']
 
-        # データ前処理
+        # 訓練データの前処理
+        train_X = traindf.drop('fraudulent', axis=1)
         self.train_X = self.preprocessing(train_X)
-        self.test_X = self.preprocessing(test_X)
 
 
     def preprocessing(self, df):
