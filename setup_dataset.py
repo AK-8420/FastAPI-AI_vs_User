@@ -68,12 +68,9 @@ class Dataset:
         detaset_Fake, quiz_Fake = train_test_split(Fakedf, test_size=50)
         detaset_Real, quiz_Real = train_test_split(Realdf, test_size=50)
 
-        # 問題文データのランダムシャッフル
+        # 問題文データをランダムシャッフルして保存
         quizdf = pd.concat([quiz_Real, quiz_Fake])
-        shuffled_df = quizdf.sample(frac=1).reset_index(drop=True)
-
-        self.problems = shuffled_df.drop("fraudulent", axis=1)   # 問題文  
-        self.solutions = shuffled_df["fraudulent"].to_numpy()    # 解答
+        self.quizdf = quizdf.sample(frac=1).reset_index(drop=True)
 
         # 訓練データとテストデータへの分割 (テストデータ25%)
         train_Fake, test_Fake = train_test_split(detaset_Fake)

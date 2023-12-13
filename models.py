@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 from setup_database import Base
@@ -21,6 +21,29 @@ class Record(Base):
 class Prediction(Base):
     __tablename__ = "predictions"
     quiz_id = Column(Integer, primary_key=True, index=True)
-    predicted_as = Column(String)
+    predicted_as = Column(Boolean)
     
     records = relationship("Record", back_populates="AI_answer")
+
+
+# 問題文データ（サーバー再起動後も保存するため）
+class Quiz(Base):
+    __tablename__ = "quizs"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String)
+    location = Column(String)
+    department = Column(String)
+    salary_range = Column(String)
+    company_profile = Column(String)
+    description = Column(String)
+    requirements = Column(String)
+    benefits = Column(String)
+    telecommuting = Column(Boolean)
+    has_company_logo = Column(Boolean)
+    has_questions = Column(Boolean)
+    employment_type = Column(String)
+    required_experience = Column(String)
+    required_education = Column(String)
+    industry = Column(String)
+    function = Column(String)
+    fraudulent = Column(Boolean)

@@ -1,5 +1,9 @@
 import random
+import os
+import atexit
+import sys
 
+import xgboost as xgb
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 
@@ -7,25 +11,53 @@ import CRUD, models, schemas, AI
 from setup_database import SessionLocal, engine
 from setup_dataset import Dataset
 
-# データベースにテーブル作成
-models.Base.metadata.create_all(bind=engine)
 
-# 訓練データと本番データの作成
-data = Dataset()
+# サーバー再起動のたびにモデル構築を防止
+if os.path.exists('tree_model.json'):
+    # トレーニング済モデルを取得
+    tree_model = xgb.Booster()
+    tree_model.load_model('tree_model.json')
+    
+else:
+    while True:
+        print("tree_model.jsonが見つかりませんでした。データベースを初期化して、新しく生成しますか？[Y/n]")
+        
+        # ユーザーの入力を待つ
+        answer = input().strip().lower() # 空白文字削除と小文字化
+        if answer == 'y':
+            print("新しいモデルを生成します。")
+            break
+        elif answer == 'n':
+            print("プログラムを終了します。")
+            sys.exit(0) # uvicornの終了はされない
+        else:
+            print("無効な入力です。")
 
-# トレーニング済モデルを取得
-tree_model = AI.get_trained_model(data.train_X, data.train_y, data.test_y, data.test_y)
+    # データベースにテーブル作成
+    models.Base.metadata.create_all(bind=engine)
 
-# 事前予測結果の保存
-db = SessionLocal()
-db.query(models.Prediction).delete() # デバッグ用：古い予測結果の削除
-for p in AI.get_predictions(tree_model):
-    if p == 1:
-        prediction_data = schemas.PredictionCreate(predicted_as="Fake")
-    else:
-        prediction_data = schemas.PredictionCreate(predicted_as="Real")
-    CRUD.create_prediction(db, prediction_data)
-db.close()
+    # 訓練データと本番データの作成
+    data = Dataset()
+
+    # モデル構築
+    tree_model = AI.get_trained_model(data.train_X, data.train_y, data.test_y, data.test_y)
+    tree_model.save_model('tree_model.json')
+
+    # データベース初期化
+    db = SessionLocal()
+    db.query(models.Quiz).delete()          # 古い問題文の削除
+    db.query(models.Prediction).delete()    # 古い問題文に基づく予測結果の削除
+    db.query(models.Record).delete()        # 古い問題文に基づく戦歴の削除
+
+    # ランダム抽出された問題文の保存
+    for quiz in data.quizdf.iterrows():
+        CRUD.create_quiz(db, schemas.QuizCreate(quiz))
+
+    # 事前予測結果の保存
+    for i, p in enumerate(AI.get_predictions(tree_model)):
+        prediction_data = schemas.PredictionCreate(quiz_id=i, predicted_as=p)
+        CRUD.create_prediction(db, prediction_data)
+    db.close()
 
 # APIインスタンス作成
 app = FastAPI()
