@@ -1,17 +1,33 @@
+import xgboost as xgb
+import pandas as pd
+
+from setup_dataset import preprocessing
+
 # モデルの構築
-def get_trained_model(train_X, train_y, test_X, test_y):
-    print("Now learning...")
-    # 学習
-    # model = ...
+def get_trained_model(train_X, train_y):
+    print("Now training...")
+    
+    dtrain = xgb.DMatrix(data=train_X, label=train_y, enable_categorical=True) # カテゴリカルデータの分類は実験的機能
+
+    # パラメータ決定の過程はXGBoost_test.ipynbを参照
+    num_round = 20
+    given_param = {
+        'max_depth': 8,
+        'objective' : 'binary:hinge'
+    }
+    trained_model = xgb.train(given_param, dtrain, num_round)
+
     print("Completed.")
-    return 1 # 仮
+    return trained_model
 
 # 予測結果リストを返す（偽文書なら1、本物文書なら0）
-def get_predictions(trained_model):
+def get_predictions(trained_model, quizset):
     print("Now getting predictions...")
-    # 予測
-    # predicted = model.predicted(test_X)
-    import random
-    predicted = [random.randint(0,1)]*100
+
+    df = pd.read_sql(quizset)
+    df = df.drop("fraudulent", axis=1)
+    test_X = preprocessing(df)
+    predicted = trained_model.predicted(test_X)
+
     print("Completed.")
     return predicted

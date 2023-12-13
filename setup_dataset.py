@@ -52,20 +52,50 @@ def split_columns_salary(df: pd.DataFrame):
     df = df.drop('salary_range', axis=1)
     return df
 
+def preprocessing(df, embedding_model):
+    # 要求経歴レベルを、文字列から数値に変換
+    df['required_experience'] = df['required_experience'].apply(encoder_experience)
+    df['required_education'] = df['required_education'].apply(encoder_education)
+
+    # 給料範囲を上限と下限の2つのカラムに分ける
+    df = split_columns_salary(df)
+
+    # 不要な列の削除
+    selected_columns = ['company_profile', 'description', 'benefits', 'required_experience', 'required_education', 'salary_lower', 'salary_upper']
+    text_columns = ['company_profile', 'description', 'benefits']
+    processed_df = copy.deepcopy(df[selected_columns])
+
+    # 学習済みembeddingsモデルを外部からダウンロード
+    emb_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
+    # GPUが使えたら使う
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda"
+    emb_model.to(device)
+    
+    # 文字列をembedding
+    for tc in text_columns:
+        print(f"Now embedding {tc}...")
+        embeddings = embedding_model.encode(processed_df[tc].fillna(''))
+        print(f"{tc} is encoded.")
+
+        # 行列の各列をDataFrameの新たなカラムとして保存
+        columns = []
+        for i in range(embeddings.shape[1]):
+                columns.append(f'{tc}_{i}')
+        emb_df = pd.DataFrame(embeddings, columns=columns)
+        processed_df = pd.concat([processed_df, emb_df], axis=1)
+
+        processed_df = processed_df.drop(tc, axis=1)
+    
+    return processed_df
+
 
 #================================
 # データセット管理クラス
 #================================
 class Dataset:
     def __init__(self):
-        # 学習済みembeddingsモデルを外部からダウンロード
-        self.emb_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
-        # GPUが使えたら使う
-        device = "cpu"
-        if torch.cuda.is_available():
-            device = "cuda"
-        self.emb_model.to(device)
-
         df = pd.read_csv("./fake_job_postings.csv")
         df = df.drop("job_id", axis=1) # job_id = 0,1,2,... 学習価値なし
 
@@ -89,35 +119,4 @@ class Dataset:
 
         # 訓練データの前処理
         train_X = traindf.drop('fraudulent', axis=1)
-        self.train_X = self.preprocessing(train_X)
-
-
-    def preprocessing(self, df):
-        # 要求経歴レベルを、文字列から数値に変換
-        df['required_experience'] = df['required_experience'].apply(encoder_experience)
-        df['required_education'] = df['required_education'].apply(encoder_education)
-
-        # 給料範囲を上限と下限の2つのカラムに分ける
-        df = split_columns_salary(df)
-
-        # 不要な列の削除
-        selected_columns = ['company_profile', 'description', 'benefits', 'required_experience', 'required_education', 'salary_lower', 'salary_upper']
-        text_columns = ['company_profile', 'description', 'benefits']
-        processed_df = copy.deepcopy(df[selected_columns])
-
-        # 文字列をembedding
-        for tc in text_columns:
-            print(f"Now embedding {tc}...")
-            embeddings = self.emb_model.encode(processed_df[tc].fillna(''))
-            print(f"{tc} is encoded.")
-
-            # 行列の各列をDataFrameの新たなカラムとして保存
-            columns = []
-            for i in range(embeddings.shape[1]):
-                    columns.append(f'{tc}_{i}')
-            emb_df = pd.DataFrame(embeddings, columns=columns)
-            processed_df = pd.concat([processed_df, emb_df], axis=1)
-
-            processed_df = processed_df.drop(tc, axis=1)
-        
-        return processed_df
+        self.train_X = preprocessing(train_X)
