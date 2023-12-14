@@ -19,6 +19,10 @@ def create_record(db: Session, record_data: schemas.RecordCreate):
     db.refresh(new_record)
     return new_record
 
+def delete_record(db: Session, record_id: str):
+    instance = get_record(db, record_id)
+    return db.delete(instance)
+
 
 def get_prediction(db: Session, prediction_id: int):
     return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
@@ -32,6 +36,10 @@ def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
     db.commit()
     db.refresh(new_prediction)
     return new_prediction
+
+def delete_prediction(db: Session, prediction_id: int):
+    instance = get_prediction(db, prediction_id)
+    return db.delete(instance)
 
 
 def get_quiz_count(db: Session):
@@ -49,3 +57,7 @@ def create_quiz(db: Session, quiz_data: schemas.QuizCreate):
     db.commit()
     db.refresh(new_quiz)
     return new_quiz
+
+def delete_quiz(db: Session, quiz_id: int):
+    instance = get_quiz(db, quiz_id)
+    return db.delete(instance)
