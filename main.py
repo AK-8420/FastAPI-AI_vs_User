@@ -39,7 +39,7 @@ else:
     data = Dataset()
 
     # モデル構築
-    tree_model = AI.get_trained_model(data.train_X, data.train_y, data.test_y, data.test_y)
+    tree_model = AI.get_trained_model(data.train_X, data.train_y)
     tree_model.save_model('tree_model.json')
 
     # データベース初期化
