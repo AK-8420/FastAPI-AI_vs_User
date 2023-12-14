@@ -7,7 +7,7 @@ def get_record(db: Session, record_id: str):
     return db.query(Record).filter(Record.result_id == record_id).first()
 
 def get_records_by_username(db: Session, username: str):
-    return db.query(Record).filter(Record.username == username).all()
+    return db.query(Record).filter(Record.username == username)
 
 def get_records(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Record).offset(skip).limit(limit).all()

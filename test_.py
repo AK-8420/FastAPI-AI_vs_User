@@ -152,10 +152,8 @@ def test_get_results_by_username():
             "username": "test"
         }
     )
-    response_json = response.json()
-    username = response_json["username"]
     
-    response = client.get(f"/result/{username}")
+    response = client.get("/result/test")
     response_json = response.json()
     assert response.status_code == 200
     
