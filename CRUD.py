@@ -1,7 +1,9 @@
-from sqlalchemy import func, case
+from sqlalchemy import func, case, and_
 from sqlalchemy.orm import Session
+
 from models import Record, Prediction, Quiz
 import schemas
+from schemas import str2bool
 
 def get_record(db: Session, record_id: str):
     return db.query(Record).filter(Record.result_id == record_id).first()
@@ -34,7 +36,13 @@ def get_records_accuracy(db: Session):
     query = db.query(
         Quiz.id,
         func.count(Record.quiz_id).label("total"),
-        func.sum(case((Record.user_answer == Quiz.fraudulent, 1), else_=0)).label("correct")
+        func.sum(
+            case(
+                (and_(Record.user_answer == 'Real', Quiz.fraudulent == False), 1),
+                (and_(Record.user_answer == 'Fake', Quiz.fraudulent == True), 1),
+                else_=0
+            )
+        ).label("correct")
     ).join(Quiz, Quiz.id == Record.quiz_id).group_by(Quiz.id).having(func.count(Record.quiz_id) > 0)
 
     # クエリ実行

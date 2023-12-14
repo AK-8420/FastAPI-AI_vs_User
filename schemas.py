@@ -3,8 +3,14 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 # 容量削減のためにintをboolに変換
-def int2bool(value):
+def int2bool(value: int):
     if value == 0:
+        return False
+    else:
+        return True
+
+def str2bool(text: str):
+    if text == "Real":
         return False
     else:
         return True
