@@ -4,7 +4,7 @@ from models import Record, Prediction, Quiz
 import schemas
 
 def get_record(db: Session, record_id: str):
-    return db.query(Record).filter(Record.id == record_id).first()
+    return db.query(Record).filter(Record.result_id == record_id).first()
 
 def get_record_by_username(db: Session, username: str):
     return db.query(Record).filter(Record.username == username).first()

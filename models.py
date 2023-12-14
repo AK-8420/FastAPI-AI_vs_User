@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 
 from setup_database import Base
@@ -8,11 +8,11 @@ from setup_database import Base
 class Record(Base):
     __tablename__ = "records"
 
-    id = Column(String, primary_key=True, index=True)
+    result_id = Column(String, primary_key=True, index=True)
     quiz_id = Column(Integer, ForeignKey('predictions.quiz_id'), index=True)
     user_answer = Column(String)
     username = Column(String, index=True)
-    created_at = Column(Integer)
+    created_at = Column(DateTime)
 
     AI_answer = relationship("Prediction", back_populates="records")
 

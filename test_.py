@@ -59,7 +59,7 @@ def test_post_collectID_1():
     )
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["id"], str)
+    assert isinstance(response_json["result_id"], str)
 
 def test_post_collectID_2():
     quiz_id = 100
@@ -73,7 +73,7 @@ def test_post_collectID_2():
     )
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["id"], str)
+    assert isinstance(response_json["result_id"], str)
 
 def test_post_collectFormat():
     response = client.post(
@@ -86,7 +86,7 @@ def test_post_collectFormat():
     )
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["id"], str)
+    assert isinstance(response_json["result_id"], str)
 
 def test_post_wrongID():
     quiz_id = -1
@@ -127,7 +127,7 @@ def test_get_result_collectID():
     )
     response_json = response.json()
 
-    hash_id = response_json["id"]
+    hash_id = response_json["result_id"]
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200

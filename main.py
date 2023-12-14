@@ -39,8 +39,8 @@ else:
     data = Dataset()
 
     # モデル構築
-    tree_model = AI.get_trained_model(data.train_X, data.train_y)
-    tree_model.save_model('tree_model.json')
+#    tree_model = AI.get_trained_model(data.train_X, data.train_y)
+#    tree_model.save_model('tree_model.json')
 
     # データベース初期化
     db = SessionLocal()
@@ -55,8 +55,8 @@ else:
 
     # 事前予測結果の保存
     quizset = db.query(models.Quiz).all()   # すべての問題文
-    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
-#    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用
+#    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
+    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用
         prediction_data = schemas.PredictionCreate(quiz_id=i, predicted_as=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()

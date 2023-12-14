@@ -1,5 +1,5 @@
-import time
 import uuid
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 # 容量削減のためにintをboolに変換
@@ -10,21 +10,24 @@ def int2bool(value):
         return True
 
 class RecordBase(BaseModel):
+    result_id: str = None
     quiz_id: int
     user_answer: str
     username: str = "Unknown user"
-    created_at: int = None
+    created_at: datetime = None
 
 class RecordCreate(RecordBase):
-    id: str = None
+    quiz_id: int
+    user_answer: str
+    username: str = "Unknown user"
     
     def __init__(self, **data):
         super().__init__(**data)
-        self.id = str(uuid.uuid4())
-        self.created_at = self.created_at or int(time.time())
+        self.result_id = str(uuid.uuid4())
+        self.created_at = datetime.now()
 
 class Record(RecordBase):
-    id: str
+    result_id: str
 
     model_config = ConfigDict(
         from_attributes = True

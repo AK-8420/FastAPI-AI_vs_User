@@ -54,11 +54,11 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
 3. 結果IDが返ってくるので、[http://128.0.0.1/result/結果ID]()にアクセス
 ```
 {
+  "result_id": "1b4442e2-a880-402f-9dfe-174455921701", (結果ID)
   "quiz_id": 3,
   "user_answer": 先ほどの解答,
   "username": "ユーザー名",
-  "created_at": 1702551397,
-  "id": "7a34dcb1-ebfa-45e4-9f71-30307dc6f60a"（結果ID）
+  "created_at": "2023-12-14T20:27:09.976484"
 }
 ```
 4. AIの予測した回答と、AIとユーザーどちらが正しかったのかが確認できる
