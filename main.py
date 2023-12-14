@@ -111,6 +111,33 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
     return CRUD.create_record(db=db, record_data=record)
 
 
+# AIとユーザーの勝敗を判定する
+def battle(user_answer, AI_answer, correct_answer):
+    # ユーザーの回答が正しいか判定
+    if user_answer == "Real" and correct_answer == False:
+        result_user = True
+    elif user_answer == "Fake" and correct_answer == True:
+        result_user = True
+    else:
+        result_user = False
+        
+    # AIの回答が正しいか判定
+    if AI_answer == False and correct_answer == False:
+        result_AI = True
+    elif AI_answer == True and correct_answer == True:
+        result_AI = True
+    else:
+        result_AI = False
+    
+    # 勝敗判定
+    if result_user == True and result_AI == False:
+        return "Win"
+    elif result_user == False and result_AI == True:
+        return "Lose"
+    else:
+        return "Draw"
+
+
 # クイズの結果を取得
 @app.get("/result/{result_id}")
 async def get_result(result_id: str, db: Session = Depends(get_db)):
@@ -124,29 +151,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     
     quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
 
-    # ユーザーの回答が正しいか判定
-    if record.user_answer == "Real" and quiz_data.fraudulent == False:
-        result_user = True
-    elif record.user_answer == "Fake" and quiz_data.fraudulent == True:
-        result_user = True
-    else:
-        result_user = False
-        
-    # AIの回答が正しいか判定
-    if predicted == False and quiz_data.fraudulent == False:
-        result_AI = True
-    elif predicted == True and quiz_data.fraudulent == True:
-        result_AI = True
-    else:
-        result_AI = False
-    
-    # 勝敗判定
-    if result_user == True and result_AI == False:
-        result_battle = "Win"
-    elif result_user == False and result_AI == True:
-        result_battle = "Lose"
-    else:
-        result_battle = "Draw"
+    result_battle = battle(record.user_answer, predicted, quiz_data.fraudulent)
     
     return {
         "result_battle": result_battle,
@@ -184,7 +189,14 @@ async def get_all_record(db: Session = Depends(get_db)):
 
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
-        record_dict.pop('result_id', None)  # result_idを除外
+
+        quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
+        record_dict["result_battle"] = battle(record.user_answer, record.AI_answer.predicted_as, quiz_data.fraudulent)
+
+        record_dict.pop('result_id', None)  # result_idをかならず除外
+        record_dict.pop('quiz_id', None)
+        record_dict.pop('AI_answer', None)
+        record_dict.pop('user_answer', None)
         dict_records.append(record_dict)
 
     return dict_records
