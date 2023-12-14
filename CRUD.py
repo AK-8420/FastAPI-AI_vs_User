@@ -34,7 +34,7 @@ def get_records_accuracy(db: Session):
     query = db.query(
         Quiz.id,
         func.count(Record.quiz_id).label("total"),
-        func.sum(case([(Record.user_answer == Quiz.fraudulent, 1)], else_=0)).label("correct")
+        func.sum(case((Record.user_answer == Quiz.fraudulent, 1), else_=0)).label("correct")
     ).join(Quiz, Quiz.id == Record.quiz_id).group_by(Quiz.id).having(func.count(Record.quiz_id) > 0)
 
     # クエリ実行
@@ -63,11 +63,11 @@ def delete_prediction(db: Session, prediction_id: int):
     instance = get_prediction(db, prediction_id)
     return db.delete(instance)
 
-def get_prediction_accuracy(db: Session, prediction_id: int):
+def get_prediction_accuracy(db: Session):
     # PredictionとQuizをjoinし、正しい予測の数を集計するクエリ
     query = db.query(
         func.count(Prediction.quiz_id).label("total"),
-        func.sum(case([(Prediction.result == Quiz.fraudulent, 1)], else_=0)).label("correct")
+        func.sum(case((Prediction.result == Quiz.fraudulent, 1), else_=0)).label("correct")
     ).join(Quiz, Quiz.id == Prediction.quiz_id)
 
     # クエリ実行
