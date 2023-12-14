@@ -55,7 +55,8 @@ else:
 
     # 事前予測結果の保存
     quizset = db.query(models.Quiz).all()   # すべての問題文
-    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
+#    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
+    for i, p in enumerate([random.randint(0,1)]*100):
         prediction_data = schemas.PredictionCreate(quiz_id=i, predicted_as=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()
@@ -89,14 +90,10 @@ async def get_quiz(db: Session = Depends(get_db)):
 
 # 特定の問題を閲覧
 @app.get("/quiz/{quiz_id}")
-async def get_quiz(quiz_id: str, db: Session = Depends(get_db)):
+async def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
     # 存在するquiz_idか？
-    try:
-        converted_id = int(quiz_id)
-        if converted_id not in range(CRUD.get_quiz_count(db)):
-            raise HTTPException(status_code=404, detail="Index is out of range")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid index")
+    if quiz_id not in range(CRUD.get_quiz_count(db)):
+        raise HTTPException(status_code=404, detail="Index is out of range")
     
     quiz_data = CRUD.get_quiz(db, quiz_id=quiz_id)
     return {"quiz_id": quiz_id, "quiz": quiz_data}

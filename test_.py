@@ -18,7 +18,7 @@ def test_get_quiz():
     assert isinstance(response_json["quiz_id"], int)
 
 def test_get_collectID_1():
-    quiz_id = 1
+    quiz_id = 0
     response = client.get(f"/quiz/{quiz_id}")
     response_json = response.json()
     assert response.status_code == 200
@@ -26,17 +26,23 @@ def test_get_collectID_1():
     assert response_json["quiz_id"] == quiz_id
 
 def test_get_collectID_2():
-    quiz_id = 100
+    quiz_id = 99
     response = client.get(f"/quiz/{quiz_id}")
     response_json = response.json()
     assert response.status_code == 200
     assert isinstance(response_json["quiz_id"], int)
     assert response_json["quiz_id"] == quiz_id
 
-def test_get_wrongID():
+def test_get_wrongID_1():
     quiz_id = -1
     response = client.get(f"/quiz/{quiz_id}")
     assert response.status_code == 404
+
+
+def test_get_wrongID_2():
+    quiz_id = "aaaa"
+    response = client.get(f"/quiz/{quiz_id}")
+    assert response.status_code == 422
 
 #==================================
 # 回答送信
@@ -125,7 +131,7 @@ def test_get_result_collectID():
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["result_user"], bool)
+    assert isinstance(response_json["result_battle"], str)
 
 def test_get_result_wrongID():
     hash_id = "not-exist-ID"
