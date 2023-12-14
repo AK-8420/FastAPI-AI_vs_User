@@ -34,7 +34,9 @@ def get_predictions(trained_model, quizset):
     df = df.drop("id", axis=1)
     df = df.drop("fraudulent", axis=1)
     test_X = preprocessing(df)
-    predicted = trained_model.predicted(test_X)
+
+    dtest = xgb.DMatrix(data=test_X, enable_categorical=True)
+    predicted = trained_model.predict(dtest)
 
     print("Completed.")
     return predicted
