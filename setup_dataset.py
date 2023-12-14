@@ -128,4 +128,4 @@ class Dataset:
 
         # 訓練データの前処理
         self.train_X = traindf.drop('fraudulent', axis=1)
-        #self.train_X = preprocessing(self.train_X)
+        self.train_X = preprocessing(self.train_X)
