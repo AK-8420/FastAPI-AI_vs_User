@@ -142,7 +142,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     else:
         result_AI = False
     
-    # ここで勝敗判定する
+    # 勝敗判定
     if result_user == True and result_AI == False:
         result_battle = "Win"
     elif result_user == False and result_AI == True:
