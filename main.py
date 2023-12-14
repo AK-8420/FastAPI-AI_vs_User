@@ -76,8 +76,11 @@ def get_db():
 
 
 @app.get("/")
-async def root():
- return {"Hello": "World",}
+async def root(db: Session = Depends(get_db)):
+    return {
+        "AI_accuracy": CRUD.get_prediction_accuracy(db),
+        "Users_accuracy": CRUD.get_records_accuracy(db),
+    }
 
 
 # ランダムに問題を出題

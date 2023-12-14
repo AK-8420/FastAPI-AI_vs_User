@@ -5,8 +5,10 @@ client = TestClient(app)
 
 def test_read_main():
     response = client.get("/")
+    response_json = response.json()
     assert response.status_code == 200
-    assert response.json() == {"Hello": "World"}
+    assert isinstance(response_json["AI_accuracy"], float)
+    assert isinstance(response_json["Users_accuracy"], float)
 
 #==================================
 # 問題文取得
