@@ -153,7 +153,7 @@ def test_get_results_by_username():
         }
     )
     
-    response = client.get("/result/test")
+    response = client.get("/result/fillter/test")
     response_json = response.json()
     assert response.status_code == 200
     
@@ -163,5 +163,6 @@ def test_get_results_by_username():
 
 
 def test_get_results_by_wrong_username():
-    response = client.get(f"/result/Not-Exist-Username")
-    assert response.status_code == 404
+    response = client.get(f"/result/fillter/Not-Exist-Username")
+    response_json = response.json()
+    assert response_json == []
