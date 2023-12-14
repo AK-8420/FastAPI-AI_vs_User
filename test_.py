@@ -162,3 +162,8 @@ def test_get_results_by_username():
     # 全要素でusernameが"test"であることを確認
     for item in response_json:
         assert item["username"] == "test"
+
+
+def test_get_results_by_wrong_username():
+    response = client.get(f"/result/Not-Exist-Username")
+    assert response.status_code == 404
