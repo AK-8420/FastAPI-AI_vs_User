@@ -155,7 +155,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
         "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
     }
 
-# ユーザー名を編集
+# ユーザー名を編集（クエリで渡す）
 @app.put("/result/{result_id}", response_model=schemas.Record)
 async def put_record(result_id: str, username: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)
@@ -164,3 +164,14 @@ async def put_record(result_id: str, username: str, db: Session = Depends(get_db
     
     record = CRUD.update_record(db, result_id, username)
     return record
+
+
+# 戦歴を削除
+@app.delete("/result/{result_id}")
+async def delete_record(result_id: str, db: Session = Depends(get_db)):
+    record = CRUD.get_record(db, result_id)
+    if record == None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    CRUD.delete_record(db, result_id)
+    return {"status": "success",}
