@@ -76,8 +76,11 @@ def get_db():
 
 
 @app.get("/")
-async def root():
- return {"Hello": "World",}
+async def root(db: Session = Depends(get_db)):
+    return {
+        "AI_accuracy": CRUD.get_prediction_accuracy(db),
+        "Users_accuracy": CRUD.get_records_accuracy(db),
+    }
 
 
 # ランダムに問題を出題
@@ -185,9 +188,31 @@ async def delete_record(result_id: str, db: Session = Depends(get_db)):
 # すべての戦歴を取得 (idは作成者以外には非公開)
 @app.get("/result")
 async def get_all_record(db: Session = Depends(get_db)):
-    dict_records = []
+    dictlist = []
 
     for record in db.query(models.Record).all() :
+        record_dict = record.__dict__
+        
+        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
+
+        record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
+        record_dict.pop('Quiz', None)       # 答えがばれないように除外
+        record_dict.pop('user_answer', None)
+        dictlist.append(record_dict)
+
+    return dictlist
+
+
+# ユーザー名ごとに戦歴を表示
+@app.get("/result/fillter/{username}")
+async def get_filltered_record(username: str, db: Session = Depends(get_db)):
+    records = CRUD.get_records_by_username(db, username)
+    if records == None:
+        return HTTPException(status_code=404, detail="Record not found")
+
+    dict_records = []
+
+    for record in records:
         record_dict = record.__dict__
         
         record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)

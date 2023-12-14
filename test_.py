@@ -5,8 +5,10 @@ client = TestClient(app)
 
 def test_read_main():
     response = client.get("/")
+    response_json = response.json()
     assert response.status_code == 200
-    assert response.json() == {"Hello": "World"}
+    assert isinstance(response_json["AI_accuracy"], float)
+    assert isinstance(response_json["Users_accuracy"], float)
 
 #==================================
 # 問題文取得
@@ -125,8 +127,8 @@ def test_get_result_collectID():
         }
     )
     response_json = response.json()
-
     hash_id = response_json["result_id"]
+
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200
@@ -141,3 +143,28 @@ def test_get_result_wrongID():
 def test_get_results():
     response = client.get(f"/result")
     assert response.status_code == 200
+
+
+def test_get_results_by_username():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "user_answer": "Fake",
+            "username": "test"
+        }
+    )
+    
+    response = client.get("/result/fillter/test")
+    response_json = response.json()
+    assert response.status_code == 200
+    
+    # 全要素でusernameが"test"であることを確認
+    for item in response_json:
+        assert item["username"] == "test"
+
+
+def test_get_results_by_wrong_username():
+    response = client.get(f"/result/fillter/Not-Exist-Username")
+    response_json = response.json()
+    assert response_json == []
