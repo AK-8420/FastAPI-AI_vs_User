@@ -14,19 +14,19 @@ class Record(Base):
     username = Column(String, index=True)
     created_at = Column(DateTime)
 
-    Quiz = relationship("Quiz", back_populates="records")
+    Quiz = relationship("Quiz", back_populates="records", uselist=False)
 
 
 # AIの予測結果
 class Prediction(Base):
     __tablename__ = "predictions"
     quiz_id = Column(Integer, ForeignKey('quizs.id', ondelete="CASCADE"), primary_key=True, index=True)
-    predicted_as = Column(Boolean)
+    result = Column(Boolean)
     
-    Quiz = relationship("Quiz", back_populates="prediction")
+    Quiz = relationship("Quiz", back_populates="prediction", uselist=False)
 
 
-# 問題文データ（サーバー再起動後も保存するため）
+# 問題文データ
 class Quiz(Base):
     __tablename__ = "quizs"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -48,5 +48,5 @@ class Quiz(Base):
     function = Column(String)
     fraudulent = Column(Boolean)
 
-    records = relationship("Record", back_populates="Quiz")
-    prediction = relationship("Prediction", back_populates="Quiz")
+    records = relationship("Record", back_populates="Quiz", uselist=True)
+    prediction = relationship("Prediction", back_populates="Quiz", uselist=False)
