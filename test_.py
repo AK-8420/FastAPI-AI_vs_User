@@ -125,8 +125,8 @@ def test_get_result_collectID():
         }
     )
     response_json = response.json()
-
     hash_id = response_json["result_id"]
+
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200
@@ -141,3 +141,24 @@ def test_get_result_wrongID():
 def test_get_results():
     response = client.get(f"/result")
     assert response.status_code == 200
+
+
+def test_get_results_by_username():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "user_answer": "Fake",
+            "username": "test"
+        }
+    )
+    response_json = response.json()
+    username = response_json["username"]
+    
+    response = client.get(f"/result/{username}")
+    response_json = response.json()
+    assert response.status_code == 200
+    
+    # 全要素でusernameが"test"であることを確認
+    for item in response_json:
+        assert item["username"] == "test"
