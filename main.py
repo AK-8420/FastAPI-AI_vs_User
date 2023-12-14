@@ -175,3 +175,9 @@ async def delete_record(result_id: str, db: Session = Depends(get_db)):
     
     CRUD.delete_record(db, result_id)
     return {"status": "success",}
+
+
+# すべての戦歴を取得
+@app.get("/result")
+async def get_record_all(db: Session = Depends(get_db)):
+    return db.query(models.Record).all() 
