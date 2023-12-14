@@ -179,7 +179,7 @@ async def delete_record(result_id: str, db: Session = Depends(get_db)):
 
 # すべての戦歴を取得 (idは作成者以外には非公開)
 @app.get("/result")
-async def get_record_all(db: Session = Depends(get_db)):
+async def get_all_record(db: Session = Depends(get_db)):
     dict_records = []
 
     for record in db.query(models.Record).all() :
