@@ -89,7 +89,7 @@ async def get_quiz(db: Session = Depends(get_db)):
 # 特定の問題を閲覧
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str, db: Session = Depends(get_db)):
-    # バリデーション
+    # 存在するquiz_idか？
     try:
         converted_id = int(quiz_id)
         if converted_id not in range(CRUD.get_quiz_count(db)):
@@ -124,19 +124,35 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     if predicted == None:
         raise HTTPException(status_code=404, detail="Prediction by AI not found")
     
+    quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
+
     # ユーザーの回答が正しいか判定
-    if record.user_answer == "Real" and data.solutions[record.quiz_id - 1] == 0:
-        isCorrect = True
-    elif record.user_answer == "Fake" and data.solutions[record.quiz_id - 1] == 1:
-        isCorrect = True
+    if record.user_answer == "Real" and quiz_data.fraudulent == False:
+        result_user = True
+    elif record.user_answer == "Fake" and quiz_data.fraudulent == True:
+        result_user = True
     else:
-        isCorrect = False
+        result_user = False
+        
+    # AIの回答が正しいか判定
+    if predicted == False and quiz_data.fraudulent == False:
+        result_AI = True
+    elif predicted == True and quiz_data.fraudulent == True:
+        result_AI = True
+    else:
+        result_AI = False
     
     # ここで勝敗判定する
-    result_battle = "win"
+    if result_user == True and result_AI == False:
+        result_battle = "Win"
+    elif result_user == False and result_AI == True:
+        result_battle = "Lose"
+    else:
+        result_battle = "Draw"
     
     return {
         "result_battle": result_battle,
-        "result_user": isCorrect,
-        "result_AI": predicted
+        "user_answer": record.user_answer,
+        "AI_answer": "Fake" if predicted else "Real",
+        "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
     }
