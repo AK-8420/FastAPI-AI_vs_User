@@ -105,15 +105,16 @@ def preprocessing(df):
 class Dataset:
     def __init__(self):
         df = pd.read_csv("./fake_job_postings.csv")
-        df = df.drop("job_id", axis=1) # job_id = 0,1,2,... 学習価値なし
+        df.drop("job_id", axis=1, inplace=True) # job_id = 0,1,2,... 学習価値なし
+        df.drop(index=df.index[100:], inplace=True) # デバッグ用：データ量削減
 
         # 偽文書と本物文書
         Fakedf = df[ df['fraudulent'] == 1 ]
         Realdf = df[ df['fraudulent'] == 0 ]
 
         # テストデータのランダム抽出 (偽文書割合50%)
-        detaset_Fake, quiz_Fake = train_test_split(Fakedf, test_size=50)
-        detaset_Real, quiz_Real = train_test_split(Realdf, test_size=50)
+        detaset_Fake, quiz_Fake = train_test_split(Fakedf, test_size=5)
+        detaset_Real, quiz_Real = train_test_split(Realdf, test_size=5)
 
         # テストデータをランダムシャッフルして保存
         quizdf = pd.concat([quiz_Real, quiz_Fake])
