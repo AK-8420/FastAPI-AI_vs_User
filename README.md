@@ -16,22 +16,19 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
     ```terminal
     git clone git@github.com:AK-8420/FastAPI-AI_vs_User.git
     ```
-2. 仮想環境を有効化
+2. 仮想環境に入る
 
     Windows PowerShellの場合
     ```terminal
     cd FastAPI-AI_vs_User
     .\.venv\Scripts\Activate.ps1
     ```
-3. setup.pyで初期設定を実行
-    ```
-    python setup.py
-    ```
-4. ローカルサーバーを立てる
+3. ローカルサーバーを立てる
     ```python
     python -m uvicorn main:app --reload
     ```
-5. [http://128.0.0.1/docs](http://128.0.0.1/)でアクセスポイントの確認
+4. "新しく生成しますか？"に```Y```(はい)と答える
+5. [http://128.0.0.1/docs](http://128.0.0.1/)で閲覧できるか確認する
 
 ## 遊び方
 1. [http://128.0.0.1/quiz](http://128.0.0.1/quiz)にアクセスしてランダムに問題文を取得する
