@@ -19,6 +19,12 @@ def create_record(db: Session, record_data: schemas.RecordCreate):
     db.refresh(new_record)
     return new_record
 
+def update_record(db: Session, record_id: str, username: str):
+    instance = get_record(db, record_id)
+    instance.username = username
+    db.commit()
+    return get_record(db, record_id) # 更新後のデータ
+
 def delete_record(db: Session, record_id: str):
     instance = get_record(db, record_id)
     return db.delete(instance)
@@ -26,9 +32,6 @@ def delete_record(db: Session, record_id: str):
 
 def get_prediction(db: Session, prediction_id: int):
     return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
-
-def get_predictions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Prediction).offset(skip).limit(limit).all()
 
 def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
     new_prediction = Prediction(**prediction_data.model_dump())
