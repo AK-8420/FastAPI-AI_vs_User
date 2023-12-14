@@ -138,7 +138,7 @@ def battle(user_answer, AI_answer, correct_answer):
         return "Draw"
 
 
-# クイズの結果を取得
+# クイズの結果を取得 (作成したユーザー以外には秘密)
 @app.get("/result/{result_id}")
 async def get_result(result_id: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)

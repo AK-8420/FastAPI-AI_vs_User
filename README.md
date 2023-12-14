@@ -70,6 +70,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
   "correct_answer": "Real"
 }
 ```
+5. [http://128.0.0.1/result](http://128.0.0.1/result)でみんなの戦歴が確認可能
 
 ## 構成
 - サーバープログラム（python）
@@ -80,7 +81,6 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
   - SQLAlchemy
     - 接続プール管理をしてくれる
 - AI
-  - scikit-learn
   - xgboost
-    - 学習が早く、精度も良いらしいのでXGBoostを採用
+    - 学習が早く、空値も含むマルチインプットに適性があるのでXGBoostを採用
   - データセット: [Real / Fake Job Posting Prediction](https://www.kaggle.com/datasets/shivamb/real-or-fake-fake-jobposting-prediction)
