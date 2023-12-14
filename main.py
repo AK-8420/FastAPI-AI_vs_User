@@ -57,7 +57,7 @@ else:
     quizset = db.query(models.Quiz).all()   # すべての問題文
     for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
 #    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用Toy予測
-        prediction_data = schemas.PredictionCreate(quiz_id=i, predicted_as=p)
+        prediction_data = schemas.PredictionCreate(quiz_id=i, result=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()
 

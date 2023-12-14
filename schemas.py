@@ -10,17 +10,13 @@ def int2bool(value):
         return True
 
 class RecordBase(BaseModel):
-    result_id: str = None
+    result_id: str = "Not required"
     quiz_id: int
-    user_answer: str
+    user_answer: str = "Real or Fake"
     username: str = "Unknown user"
     created_at: datetime = None
 
 class RecordCreate(RecordBase):
-    quiz_id: int
-    user_answer: str
-    username: str = "Unknown user"
-    
     def __init__(self, **data):
         super().__init__(**data)
         self.result_id = str(uuid.uuid4())
@@ -38,10 +34,10 @@ class PredictionBase(BaseModel):
     quiz_id: int # ズレ防止のためにid手動指定
 
 class PredictionCreate(PredictionBase):
-    predicted_as: int
+    result: int
 
     def __init__(self, **data):
-        data["predicted_as"] = int2bool(data["predicted_as"])
+        data["result"] = int2bool(data["result"])
         super().__init__(**data)
 
 class Prediction(PredictionBase):
