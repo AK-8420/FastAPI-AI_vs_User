@@ -109,7 +109,6 @@ def test_post_wrongFormat():
             "username": "test"
         }
     )
-    response_json = response.json()
     assert response.status_code == 400
 
 
@@ -136,5 +135,9 @@ def test_get_result_collectID():
 def test_get_result_wrongID():
     hash_id = "not-exist-ID"
     response = client.get(f"/result/{hash_id}")
-    response_json = response.json()
     assert response.status_code == 404
+
+
+def test_get_results():
+    response = client.get(f"/result")
+    assert response.status_code == 200
