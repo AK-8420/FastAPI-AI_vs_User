@@ -145,18 +145,18 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
 
-    predicted = record.AI_answer.predicted_as
-    if predicted == None:
+    AI_answer = record.Quiz.prediction.result
+    if AI_answer == None:
         raise HTTPException(status_code=404, detail="Prediction by AI not found")
     
     quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
 
-    result_battle = battle(record.user_answer, predicted, quiz_data.fraudulent)
+    result_battle = battle(record.user_answer, AI_answer, quiz_data.fraudulent)
     
     return {
         "result_battle": result_battle,
         "user_answer": record.user_answer,
-        "AI_answer": "Fake" if predicted else "Real",
+        "AI_answer": "Fake" if AI_answer else "Real",
         "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
     }
 
@@ -189,13 +189,11 @@ async def get_all_record(db: Session = Depends(get_db)):
 
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
+        
+        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
 
-        quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
-        record_dict["result_battle"] = battle(record.user_answer, record.AI_answer.predicted_as, quiz_data.fraudulent)
-
-        record_dict.pop('result_id', None)  # result_idをかならず除外
-        record_dict.pop('quiz_id', None)
-        record_dict.pop('AI_answer', None)
+        record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
+        record_dict.pop('Quiz', None)       # 答えがばれないように除外
         record_dict.pop('user_answer', None)
         dict_records.append(record_dict)
 

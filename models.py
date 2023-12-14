@@ -9,10 +9,10 @@ class Record(Base):
     __tablename__ = "records"
 
     result_id = Column(String, primary_key=True, index=True)
+    created_at = Column(DateTime)
     quiz_id = Column(Integer, ForeignKey('quizs.id', ondelete="CASCADE"), index=True)
     user_answer = Column(String)
     username = Column(String, index=True)
-    created_at = Column(DateTime)
 
     Quiz = relationship("Quiz", back_populates="records", uselist=False)
 
