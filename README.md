@@ -84,3 +84,7 @@ RESTful APIの基本的なメソッド（GET, POST, PUT/PATCH, DELETE）の実�
   - xgboost
     - 学習が早く、空値も含むマルチインプットに適性があるのでXGBoostを採用
   - データセット: [Real / Fake Job Posting Prediction](https://www.kaggle.com/datasets/shivamb/real-or-fake-fake-jobposting-prediction)
+
+## 制作記録
+考えたことや試行錯誤したことのメモ
+https://github.com/AK-8420/FastAPI-AI_vs_User/wiki
