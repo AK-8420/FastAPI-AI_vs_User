@@ -11,4 +11,4 @@ pydantic
 matplotlib
 nltk
 transformers
-torch
+torch --index-url https://download.pytorch.org/whl/cu118
