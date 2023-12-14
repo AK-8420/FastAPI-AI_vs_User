@@ -38,7 +38,7 @@ class PredictionCreate(PredictionBase):
     predicted_as: int
 
     def __init__(self, **data):
-        self.predicted_as = int2bool(self.predicted_as)
+        data["predicted_as"] = int2bool(data["predicted_as"])
         super().__init__(**data)
 
 class Prediction(PredictionBase):
@@ -64,14 +64,15 @@ class QuizBase(BaseModel):
     required_education: str
     industry: str
     function: str
+    fraudulent: bool
 
 
 class QuizCreate(QuizBase):
     def __init__(self, **data):
-        self.telecommuting = self.int2bool(self.telecommuting)
-        self.has_company_logo = self.int2bool(self.has_company_logo)
-        self.has_questions = self.int2bool(self.has_questions)
-        self.fraudulent = self.int2bool(self.fraudulent)
+        data["telecommuting"] = int2bool(data["telecommuting"])
+        data["has_company_logo"] = int2bool(data["has_company_logo"])
+        data["has_questions"] = int2bool(data["has_questions"])
+        data["fraudulent"] = int2bool(data["fraudulent"])
         super().__init__(**data)
 
 

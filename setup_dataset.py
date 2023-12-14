@@ -67,19 +67,24 @@ def preprocessing(df):
 
     # 学習済みembeddingsモデルを外部からダウンロード
     embedding_model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True) # trust_remote_code is needed to use the encode method
-    # GPUが使えたら使う
-    device = "cpu"
-    if torch.cuda.is_available():
-        print("GPU will be used.")
-        device = "cuda"
-    else:
-        print("CPU will be used.")
-    embedding_model.to(device)
     
     # 文字列をembedding
     for tc in text_columns:
         print(f"Now embedding {tc}...")
-        embeddings = embedding_model.encode(processed_df[tc].fillna(''))
+
+        column = processed_df[tc].fillna('')
+        max_bytes = column.apply(lambda x: len(str(x).encode('utf-8'))).max()
+
+        # GPUが使えたら使う (最大文字数の閾値は適当)
+        device = "cpu"
+        if torch.cuda.is_available() and max_bytes < 10000:
+            print("GPU will be used.")
+            device = "cuda"
+        else:
+            print("CPU will be used.")
+        embedding_model.to(device)
+
+        embeddings = embedding_model.encode(column, max_length=max_bytes)
         print(f"{tc} is encoded.")
 
         # 行列の各列をDataFrameの新たなカラムとして保存
@@ -113,6 +118,7 @@ class Dataset:
         # テストデータをランダムシャッフルして保存
         quizdf = pd.concat([quiz_Real, quiz_Fake])
         self.quizdf = quizdf.sample(frac=1).reset_index(drop=True)
+        self.quizdf = self.quizdf.fillna('')
 
         # 訓練データもランダムシャッフル
         traindf = pd.concat([detaset_Fake, detaset_Real])
@@ -121,5 +127,5 @@ class Dataset:
         self.train_y = traindf['fraudulent']
 
         # 訓練データの前処理
-        train_X = traindf.drop('fraudulent', axis=1)
-        self.train_X = preprocessing(train_X)
+        self.train_X = traindf.drop('fraudulent', axis=1)
+        # self.train_X = preprocessing(self.train_X)
