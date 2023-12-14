@@ -154,3 +154,13 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
         "AI_answer": "Fake" if predicted else "Real",
         "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
     }
+
+# ユーザー名を編集
+@app.put("/result/{result_id}", response_model=schemas.Record)
+async def put_record(result_id: str, username: str, db: Session = Depends(get_db)):
+    record = CRUD.get_record(db, result_id)
+    if record == None:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    record = CRUD.update_record(db, result_id, username)
+    return record
