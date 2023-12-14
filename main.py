@@ -83,7 +83,7 @@ async def root():
 # ランダムに問題を出題
 @app.get("/quiz")
 async def get_quiz(db: Session = Depends(get_db)):
-    quiz_id = random.randint(0, CRUD.get_quiz_count(db) - 1)
+    quiz_id = random.randint(1, CRUD.get_quiz_count(db))
     quiz_data = CRUD.get_quiz(db, quiz_id=quiz_id)
     return {"quiz_id": quiz_id, "quiz": quiz_data}
 
@@ -92,8 +92,8 @@ async def get_quiz(db: Session = Depends(get_db)):
 @app.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
     # 存在するquiz_idか？
-    if quiz_id not in range(CRUD.get_quiz_count(db)):
-        raise HTTPException(status_code=404, detail="Index is out of range")
+    if CRUD.get_quiz(db, quiz_id) == None:
+        raise HTTPException(status_code=404, detail="Quiz not found")
     
     quiz_data = CRUD.get_quiz(db, quiz_id=quiz_id)
     return {"quiz_id": quiz_id, "quiz": quiz_data}
