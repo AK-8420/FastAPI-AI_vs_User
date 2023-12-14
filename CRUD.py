@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 from models import Record, Prediction, Quiz
 import schemas
@@ -29,6 +29,25 @@ def delete_record(db: Session, record_id: str):
     instance = get_record(db, record_id)
     return db.delete(instance)
 
+def get_records_accuracy(db: Session):
+    # 各QuizごとにRecordの正しい予測の割合を計算 (RecordのないQuizは無視)
+    query = db.query(
+        Quiz.id,
+        func.count(Record.quiz_id).label("total"),
+        func.sum(case([(Record.user_answer == Quiz.fraudulent, 1)], else_=0)).label("correct")
+    ).join(Quiz, Quiz.id == Record.quiz_id).group_by(Quiz.id).having(func.count(Record.quiz_id) > 0)
+
+    # クエリ実行
+    results = query.all()
+
+    # 各Quizごとの正解率を計算し、平均を求める
+    if results == None:
+        total_accuracy = 0
+    else:
+        total_accuracy = sum(result.correct / result.total for result in results) / len(results)
+
+    return total_accuracy
+
 
 def get_prediction(db: Session, prediction_id: int):
     return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
@@ -43,6 +62,22 @@ def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
 def delete_prediction(db: Session, prediction_id: int):
     instance = get_prediction(db, prediction_id)
     return db.delete(instance)
+
+def get_prediction_accuracy(db: Session, prediction_id: int):
+    # PredictionとQuizをjoinし、正しい予測の数を集計するクエリ
+    query = db.query(
+        func.count(Prediction.quiz_id).label("total"),
+        func.sum(case([(Prediction.result == Quiz.fraudulent, 1)], else_=0)).label("correct")
+    ).join(Quiz, Quiz.id == Prediction.quiz_id)
+
+    # クエリ実行
+    result = query.one()
+
+    # 正しい予測の割合を計算
+    if result.total == 0:
+        return 0
+    else:
+        return result.correct / result.total
 
 
 def get_quiz_count(db: Session):
