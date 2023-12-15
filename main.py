@@ -59,6 +59,8 @@ else:
 #    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用Toy予測
         prediction_data = schemas.PredictionCreate(quiz_id=i, answer=p)
         CRUD.create_prediction(db, prediction_data)
+        
+        CRUD.get_prediction(db, i).isCorrect = (self.answer == self.Quiz.fraudulent)
     db.close()
 
 # APIインスタンス作成

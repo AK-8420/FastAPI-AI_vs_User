@@ -38,8 +38,7 @@ def get_records_accuracy(db: Session):
         func.count(Record.quiz_id).label("total"),
         func.sum(
             case(
-                (and_(Record.user_answer == 'Real', Quiz.fraudulent == False), 1),
-                (and_(Record.user_answer == 'Fake', Quiz.fraudulent == True), 1),
+                ((Record.isCorrect), 1),
                 else_=0
             )
         ).label("correct")
@@ -49,10 +48,13 @@ def get_records_accuracy(db: Session):
     results = query.all()
 
     # 各Quizごとの正解率を計算し、平均を求める
-    if results == None:
+    if not results:
         total_accuracy = 0
     else:
-        total_accuracy = sum(result.correct / result.total for result in results) / len(results)
+        s = 0
+        for result in results:
+            s = s + (result.correct / result.total) if result.total != 0 else s
+        total_accuracy = s / len(results)
 
     return total_accuracy
 
@@ -75,7 +77,7 @@ def get_prediction_accuracy(db: Session):
     # PredictionとQuizをjoinし、正しい予測の数を集計するクエリ
     query = db.query(
         func.count(Prediction.quiz_id).label("total"),
-        func.sum(case((Prediction.result == Quiz.fraudulent, 1), else_=0)).label("correct")
+        func.sum(case((Prediction.isCorrect, 1), else_=0)).label("correct")
     ).join(Quiz, Quiz.id == Prediction.quiz_id)
 
     # クエリ実行

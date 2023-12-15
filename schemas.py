@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy import orm
 
 # 容量削減のためにintをboolに変換
 def int2bool(value: int):
@@ -15,6 +16,7 @@ def str2bool(text: str):
     else:
         return True
 
+
 class RecordBase(BaseModel):
     result_id: str = "Not required"
     created_at: datetime = None
@@ -23,12 +25,17 @@ class RecordBase(BaseModel):
     user_answer: str = "Real or Fake"
     isCorrect: bool = None
 
+
 class RecordCreate(RecordBase):
     def __init__(self, **data):
         super().__init__(**data)
         self.result_id = str(uuid.uuid4())
         self.created_at = datetime.now()
+
+    @orm.reconstructor
+    def on_load(self):
         self.isCorrect = (self.user_answer == self.Quiz.fraudulent)
+
 
 class Record(RecordBase):
     result_id: str
@@ -42,13 +49,18 @@ class PredictionBase(BaseModel):
     quiz_id: int # ズレ防止のためにid手動指定
     isCorrect: bool = None
 
+
 class PredictionCreate(PredictionBase):
     answer: int
 
     def __init__(self, **data):
         data["answer"] = int2bool(data["answer"])
         super().__init__(**data)
+    
+    @orm.reconstructor
+    def on_load(self):
         self.isCorrect = (self.answer == self.Quiz.fraudulent)
+
 
 class Prediction(PredictionBase):
     model_config = ConfigDict(
