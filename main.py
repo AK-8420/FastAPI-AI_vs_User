@@ -4,17 +4,12 @@ import sys
 
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 import CRUD, models, schemas, AI
 from setup_database import SessionLocal, engine
 from setup_dataset import Dataset
 
-
-# 新規インスタンス生成のたびにisCorrectを計算
-event.listen(schemas.PredictionCreate, 'after_insert', schemas.after_insert_listener)
-event.listen(schemas.RecordCreate, 'after_insert', schemas.after_insert_listener)
 
 
 # サーバー再起動のたびにモデル構築を防止
@@ -57,12 +52,11 @@ else:
     # ランダム抽出された問題文の保存
     for index, quiz in data.quizdf.iterrows():
         quiz_dict = quiz.to_dict()
-        CRUD.create_quiz(db, schemas.QuizCreate(**quiz_dict)) # アンパックして渡す
+        CRUD.create_quiz(db, schemas.QuizCreate(**quiz_dict))
 
     # 事前予測結果の保存
     quizset = db.query(models.Quiz).all()   # すべての問題文
-    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
-#    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用Toy予測
+    for i, p in enumerate(AI.get_predictions(tree_model, quizset), 1): # DBのindexは1始まり
         prediction_data = schemas.PredictionCreate(quiz_id=i, answer=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()

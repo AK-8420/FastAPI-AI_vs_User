@@ -15,6 +15,11 @@ def get_records(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Record).offset(skip).limit(limit).all()
 
 def create_record(db: Session, record_data: schemas.RecordCreate):
+    quiz = db.query(Quiz).filter(Quiz.id == record_data.quiz_id).first()
+    if quiz is None:
+        raise ValueError(f"No Quiz found with id {record_data.quiz_id}")
+    record_data.isCorrect = (str2bool(record_data.answer) == quiz.fraudulent)
+
     new_record = Record(**record_data.model_dump())
     db.add(new_record)
     db.commit()
@@ -63,6 +68,11 @@ def get_prediction(db: Session, quiz_id: int):
     return db.query(Prediction).filter(Prediction.quiz_id == quiz_id).first()
 
 def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
+    quiz = db.query(Quiz).filter(Quiz.id == prediction_data.quiz_id).first()
+    if quiz is None:
+        raise ValueError(f"No Quiz found with id {prediction_data.quiz_id}")
+    prediction_data.isCorrect = (prediction_data.answer == quiz.fraudulent)
+
     new_prediction = Prediction(**prediction_data.model_dump())
     db.add(new_prediction)
     db.commit()

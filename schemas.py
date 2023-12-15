@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import orm
+
 
 # 容量削減のためにintをboolに変換
 def int2bool(value: int):
@@ -66,11 +66,6 @@ class Prediction(PredictionBase):
     model_config = ConfigDict(
         from_attributes = True
     )
-
-
-
-def after_insert_listener(mapper, connection, target: PredictionCreate or RecordCreate):
-    target.isCorrect = (target.answer == target.Quiz.fraudulent)
 
 
 
