@@ -11,8 +11,9 @@ class Record(Base):
     result_id = Column(String, primary_key=True, index=True)
     created_at = Column(DateTime)
     quiz_id = Column(Integer, ForeignKey('quizs.id', ondelete="CASCADE"), index=True)
-    user_answer = Column(String)
     username = Column(String, index=True)
+    user_answer = Column(String)
+    isCorrect = Column(Boolean)
 
     Quiz = relationship("Quiz", back_populates="records", uselist=False)
 
@@ -21,7 +22,8 @@ class Record(Base):
 class Prediction(Base):
     __tablename__ = "predictions"
     quiz_id = Column(Integer, ForeignKey('quizs.id', ondelete="CASCADE"), primary_key=True, index=True)
-    result = Column(Boolean)
+    answer = Column(Boolean)
+    isCorrect = Column(Boolean)
     
     Quiz = relationship("Quiz", back_populates="prediction", uselist=False)
 

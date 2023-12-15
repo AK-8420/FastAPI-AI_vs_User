@@ -148,7 +148,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
 
-    AI_answer = record.Quiz.prediction.result
+    AI_answer = record.Quiz.prediction.answer
     if AI_answer == None:
         raise HTTPException(status_code=404, detail="Prediction by AI not found")
     
@@ -193,7 +193,7 @@ async def get_all_record(db: Session = Depends(get_db)):
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
+        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
         record_dict.pop('Quiz', None)       # 答えがばれないように除外
@@ -215,7 +215,7 @@ async def get_filltered_record(username: str, db: Session = Depends(get_db)):
     for record in records:
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
+        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
         record_dict.pop('Quiz', None)       # 答えがばれないように除外
