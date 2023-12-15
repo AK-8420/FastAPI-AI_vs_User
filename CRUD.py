@@ -34,7 +34,12 @@ def update_record(db: Session, record_id: str, username: str):
 
 def delete_record(db: Session, record_id: str):
     instance = get_record(db, record_id)
-    return db.delete(instance)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False
 
 def get_records_accuracy(db: Session):
     # 各QuizごとにRecordの正しい予測の割合を計算 (RecordのないQuizは無視)
@@ -81,7 +86,12 @@ def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
 
 def delete_prediction(db: Session, quiz_id: int):
     instance = get_prediction(db, quiz_id)
-    return db.delete(instance)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False
 
 def get_prediction_accuracy(db: Session):
     # PredictionとQuizをjoinし、正しい予測の数を集計するクエリ
@@ -118,4 +128,9 @@ def create_quiz(db: Session, quiz_data: schemas.QuizCreate):
 
 def delete_quiz(db: Session, quiz_id: int):
     instance = get_quiz(db, quiz_id)
-    return db.delete(instance)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False
