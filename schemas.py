@@ -20,11 +20,11 @@ def str2bool(text: str):
 
 class RecordBase(BaseModel):
     result_id: Optional[str] = Field("Not required")
-    created_at: Optional[datetime]
+    created_at: Optional[datetime] = None
     quiz_id: int
     username: str = "Unknown user"
     user_answer: str = "Real or Fake"
-    isCorrect: Optional[bool]
+    isCorrect: Optional[bool] = None
 
 
 class RecordCreate(RecordBase):
@@ -48,7 +48,7 @@ class Record(RecordBase):
 
 class PredictionBase(BaseModel):
     quiz_id: int # ズレ防止のためにid手動指定
-    isCorrect: Optional[bool]
+    isCorrect: Optional[bool] = None
 
 
 class PredictionCreate(PredictionBase):
