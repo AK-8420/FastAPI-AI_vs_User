@@ -1,6 +1,8 @@
 import uuid
+from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
 
 # 容量削減のためにintをboolに変換
 def int2bool(value: int):
@@ -15,18 +17,29 @@ def str2bool(text: str):
     else:
         return True
 
+def bool2str(answer: bool):
+    if answer == True:
+        return "Fake"
+    else:
+        return "Real"
+
+
+
 class RecordBase(BaseModel):
-    result_id: str = "Not required"
+    result_id: Optional[str] = Field("Not required")
+    created_at: Optional[datetime] = None
     quiz_id: int
-    user_answer: str = "Real or Fake"
     username: str = "Unknown user"
-    created_at: datetime = None
+    answer: str = "Real or Fake"
+    isCorrect: Optional[bool] = None
+
 
 class RecordCreate(RecordBase):
     def __init__(self, **data):
         super().__init__(**data)
         self.result_id = str(uuid.uuid4())
         self.created_at = datetime.now()
+
 
 class Record(RecordBase):
     result_id: str
@@ -38,18 +51,22 @@ class Record(RecordBase):
 
 class PredictionBase(BaseModel):
     quiz_id: int # ズレ防止のためにid手動指定
+    isCorrect: Optional[bool] = None
+
 
 class PredictionCreate(PredictionBase):
-    result: int
+    answer: int
 
     def __init__(self, **data):
-        data["result"] = int2bool(data["result"])
+        data["answer"] = int2bool(data["answer"])
         super().__init__(**data)
+
 
 class Prediction(PredictionBase):
     model_config = ConfigDict(
         from_attributes = True
     )
+
 
 
 class QuizBase(BaseModel):

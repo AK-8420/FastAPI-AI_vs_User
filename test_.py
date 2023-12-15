@@ -55,7 +55,7 @@ def test_post_collectID_1():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -69,7 +69,7 @@ def test_post_collectID_2():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -82,7 +82,7 @@ def test_post_collectFormat():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake", # Real is already tested
+            "answer": "Fake", # Real is already tested
             "username": "test"
         }
     )
@@ -96,7 +96,7 @@ def test_post_wrongID():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -107,7 +107,7 @@ def test_post_wrongFormat():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "hogehoge",
+            "answer": "hogehoge",
             "username": "test"
         }
     )
@@ -122,7 +122,7 @@ def test_get_result_collectID():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake",
+            "answer": "Fake",
             "username": "test"
         }
     )
@@ -132,7 +132,7 @@ def test_get_result_collectID():
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["result_battle"], str)
+    assert isinstance(response_json["Battle_result"], str)
 
 def test_get_result_wrongID():
     hash_id = "not-exist-ID"
@@ -150,7 +150,7 @@ def test_get_results_by_username():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake",
+            "answer": "Fake",
             "username": "test"
         }
     )
@@ -168,3 +168,55 @@ def test_get_results_by_wrong_username():
     response = client.get(f"/result/fillter/Not-Exist-Username")
     response_json = response.json()
     assert response_json == []
+
+
+#==================================
+# 戦歴編集
+#==================================
+def test_put_record():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "answer": "Fake",
+            "username": "hogehogeeeeeee"
+        }
+    )
+    response_json = response.json()
+    hash_id = response_json["result_id"]
+
+    response = client.put(f"/result/{hash_id}?username=fugafuga")
+    assert response.status_code == 200
+    
+    response = client.get(f"/result")
+    response_json = response.json()
+    for item in response_json:
+        assert item["username"] != "hogehogeeeeeee"
+    
+
+
+#==================================
+# 戦歴削除
+#==================================
+def test_delete_record_collectID():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "answer": "Fake",
+            "username": "test"
+        }
+    )
+    response_json = response.json()
+    hash_id = response_json["result_id"]
+
+    response = client.delete(f"/result/{hash_id}")
+    assert response.status_code == 200
+
+    response = client.get(f"/result/{hash_id}")
+    assert response.status_code == 404
+
+def test_delete_record_wrongID():
+    hash_id = "not-exist-ID"
+    response = client.delete(f"/result/{hash_id}")
+    assert response.status_code == 404

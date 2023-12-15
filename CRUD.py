@@ -15,6 +15,11 @@ def get_records(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Record).offset(skip).limit(limit).all()
 
 def create_record(db: Session, record_data: schemas.RecordCreate):
+    quiz = db.query(Quiz).filter(Quiz.id == record_data.quiz_id).first()
+    if quiz is None:
+        raise ValueError(f"No Quiz found with id {record_data.quiz_id}")
+    record_data.isCorrect = (str2bool(record_data.answer) == quiz.fraudulent)
+
     new_record = Record(**record_data.model_dump())
     db.add(new_record)
     db.commit()
@@ -29,7 +34,12 @@ def update_record(db: Session, record_id: str, username: str):
 
 def delete_record(db: Session, record_id: str):
     instance = get_record(db, record_id)
-    return db.delete(instance)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False
 
 def get_records_accuracy(db: Session):
     # 各QuizごとにRecordの正しい予測の割合を計算 (RecordのないQuizは無視)
@@ -38,8 +48,7 @@ def get_records_accuracy(db: Session):
         func.count(Record.quiz_id).label("total"),
         func.sum(
             case(
-                (and_(Record.user_answer == 'Real', Quiz.fraudulent == False), 1),
-                (and_(Record.user_answer == 'Fake', Quiz.fraudulent == True), 1),
+                ((Record.isCorrect), 1),
                 else_=0
             )
         ).label("correct")
@@ -49,33 +58,46 @@ def get_records_accuracy(db: Session):
     results = query.all()
 
     # 各Quizごとの正解率を計算し、平均を求める
-    if results == None:
+    if not results:
         total_accuracy = 0
     else:
-        total_accuracy = sum(result.correct / result.total for result in results) / len(results)
+        s = 0
+        for result in results:
+            s = s + (result.correct / result.total) if result.total != 0 else s
+        total_accuracy = s / len(results)
 
     return total_accuracy
 
 
-def get_prediction(db: Session, prediction_id: int):
-    return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
+def get_prediction(db: Session, quiz_id: int):
+    return db.query(Prediction).filter(Prediction.quiz_id == quiz_id).first()
 
 def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
+    quiz = db.query(Quiz).filter(Quiz.id == prediction_data.quiz_id).first()
+    if quiz is None:
+        raise ValueError(f"No Quiz found with id {prediction_data.quiz_id}")
+    prediction_data.isCorrect = (prediction_data.answer == quiz.fraudulent)
+
     new_prediction = Prediction(**prediction_data.model_dump())
     db.add(new_prediction)
     db.commit()
     db.refresh(new_prediction)
     return new_prediction
 
-def delete_prediction(db: Session, prediction_id: int):
-    instance = get_prediction(db, prediction_id)
-    return db.delete(instance)
+def delete_prediction(db: Session, quiz_id: int):
+    instance = get_prediction(db, quiz_id)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False
 
 def get_prediction_accuracy(db: Session):
     # PredictionとQuizをjoinし、正しい予測の数を集計するクエリ
     query = db.query(
         func.count(Prediction.quiz_id).label("total"),
-        func.sum(case((Prediction.result == Quiz.fraudulent, 1), else_=0)).label("correct")
+        func.sum(case((Prediction.isCorrect, 1), else_=0)).label("correct")
     ).join(Quiz, Quiz.id == Prediction.quiz_id)
 
     # クエリ実行
@@ -106,4 +128,9 @@ def create_quiz(db: Session, quiz_data: schemas.QuizCreate):
 
 def delete_quiz(db: Session, quiz_id: int):
     instance = get_quiz(db, quiz_id)
-    return db.delete(instance)
+    if instance:
+        db.delete(instance)
+        db.commit()
+        return True
+    else:
+        return False

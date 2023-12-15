@@ -11,6 +11,7 @@ from setup_database import SessionLocal, engine
 from setup_dataset import Dataset
 
 
+
 # サーバー再起動のたびにモデル構築を防止
 if os.path.exists('tree_model.json'):
     # トレーニング済モデルを取得
@@ -51,13 +52,12 @@ else:
     # ランダム抽出された問題文の保存
     for index, quiz in data.quizdf.iterrows():
         quiz_dict = quiz.to_dict()
-        CRUD.create_quiz(db, schemas.QuizCreate(**quiz_dict)) # アンパックして渡す
+        CRUD.create_quiz(db, schemas.QuizCreate(**quiz_dict))
 
     # 事前予測結果の保存
     quizset = db.query(models.Quiz).all()   # すべての問題文
-    for i, p in enumerate(AI.get_predictions(tree_model, quizset)):
-#    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用Toy予測
-        prediction_data = schemas.PredictionCreate(quiz_id=i, result=p)
+    for i, p in enumerate(AI.get_predictions(tree_model, quizset), 1): # DBのindexは1始まり
+        prediction_data = schemas.PredictionCreate(quiz_id=i, answer=p)
         CRUD.create_prediction(db, prediction_data)
     db.close()
 
@@ -78,8 +78,8 @@ def get_db():
 @app.get("/")
 async def root(db: Session = Depends(get_db)):
     return {
-        "AI_accuracy": CRUD.get_prediction_accuracy(db),
-        "Users_accuracy": CRUD.get_records_accuracy(db),
+        "AI_accuracy": round(float(CRUD.get_prediction_accuracy(db)), 3),
+        "Users_accuracy": round(float(CRUD.get_records_accuracy(db)), 3),
     }
 
 
@@ -103,39 +103,24 @@ async def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
 
 
 # ユーザーの回答を送信
-@app.post("/quiz", response_model=schemas.Record)
+@app.post("/quiz")
 async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db)):
     if CRUD.get_quiz(db, record.quiz_id) == None:
         raise HTTPException(status_code=404, detail="Quiz not found")
 
-    if not (record.user_answer == 'Real' or record.user_answer == 'Fake'):
+    if not (record.answer == 'Real' or record.answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
 
-    return CRUD.create_record(db=db, record_data=record)
+    new_record = CRUD.create_record(db=db, record_data=record)
+
+    return { "result_id":new_record.result_id, "created_at": new_record.created_at }
 
 
 # AIとユーザーの勝敗を判定する
-def battle(user_answer, AI_answer, correct_answer):
-    # ユーザーの回答が正しいか判定
-    if user_answer == "Real" and correct_answer == False:
-        result_user = True
-    elif user_answer == "Fake" and correct_answer == True:
-        result_user = True
-    else:
-        result_user = False
-        
-    # AIの回答が正しいか判定
-    if AI_answer == False and correct_answer == False:
-        result_AI = True
-    elif AI_answer == True and correct_answer == True:
-        result_AI = True
-    else:
-        result_AI = False
-    
-    # 勝敗判定
-    if result_user == True and result_AI == False:
+def battle(user_isCorrect: bool, AI_isCorrect: bool):
+    if user_isCorrect == True and AI_isCorrect == False:
         return "Win"
-    elif result_user == False and result_AI == True:
+    elif user_isCorrect == False and AI_isCorrect == True:
         return "Lose"
     else:
         return "Draw"
@@ -147,23 +132,27 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)
     if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
-
-    AI_answer = record.Quiz.prediction.result
-    if AI_answer == None:
-        raise HTTPException(status_code=404, detail="Prediction by AI not found")
     
-    quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
+    quiz_data = CRUD.get_quiz(db, record.quiz_id)
+    if quiz_data == None:
+        raise HTTPException(status_code=404, detail="Quiz not found.")
 
-    result_battle = battle(record.user_answer, AI_answer, quiz_data.fraudulent)
+    AI_answer = CRUD.get_prediction(db, record.quiz_id)
+    if AI_answer == None:
+        raise HTTPException(status_code=404, detail="Prediction by AI is not found.")
+    
+
+    result_battle = battle(record.isCorrect, AI_answer.isCorrect)
     
     return {
-        "result_battle": result_battle,
-        "user_answer": record.user_answer,
-        "AI_answer": "Fake" if AI_answer else "Real",
-        "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
+        "Battle_result": result_battle,
+        "User_answer": record.answer,
+        "AI_answer": schemas.bool2str(AI_answer),
+        "correct_answer": schemas.bool2str(quiz_data.fraudulent)
     }
 
-# ユーザー名を編集（クエリで渡す）
+
+# ユーザー名を編集（ユーザー名はクエリで渡す）
 @app.put("/result/{result_id}", response_model=schemas.Record)
 async def put_record(result_id: str, username: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)
@@ -193,17 +182,18 @@ async def get_all_record(db: Session = Depends(get_db)):
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
+        AI_answer = CRUD.get_prediction(db, record_dict["quiz_id"])
+        record_dict["Battle_result"] = battle(record_dict["isCorrect"], AI_answer.isCorrect)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
-        record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('user_answer', None)
+        record_dict.pop('Quiz', None)       # 外部に答えがばれないように除外
+        record_dict.pop('answer', None)     # 外部に答えがばれないように除外
         dictlist.append(record_dict)
 
     return dictlist
 
 
-# ユーザー名ごとに戦歴を表示
+# ユーザー名ごとに戦歴を表示 ("/result/{username}"だとresult_id取得処理とかぶる)
 @app.get("/result/fillter/{username}")
 async def get_filltered_record(username: str, db: Session = Depends(get_db)):
     records = CRUD.get_records_by_username(db, username)
@@ -214,12 +204,12 @@ async def get_filltered_record(username: str, db: Session = Depends(get_db)):
 
     for record in records:
         record_dict = record.__dict__
-        
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.result, record.Quiz.fraudulent)
+
+        AI_answer = CRUD.get_prediction(db, record_dict["quiz_id"])
+        record_dict["Battle_result"] = battle(record_dict["isCorrect"], AI_answer.isCorrect)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
-        record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('user_answer', None)
-        dict_records.append(record_dict)
+        record_dict.pop('Quiz', None)       # 外部に答えがばれないように除外
+        record_dict.pop('answer', None)     # 外部に答えがばれないように除外
 
     return dict_records
