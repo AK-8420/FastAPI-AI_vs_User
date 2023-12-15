@@ -111,12 +111,13 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
     if not (record.answer == 'Real' or record.answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
 
-    return CRUD.create_record(db=db, record_data=record)
+    new_record = CRUD.create_record(db=db, record_data=record)
+
+    return { "result_id":new_record.result_id, "created_at": new_record.created_at }
 
 
 # AIとユーザーの勝敗を判定する
 def battle(user_isCorrect: bool, AI_isCorrect: bool):
-    # 勝敗判定
     if user_isCorrect == True and AI_isCorrect == False:
         return "Win"
     elif user_isCorrect == False and AI_isCorrect == True:
@@ -191,7 +192,7 @@ async def get_all_record(db: Session = Depends(get_db)):
     return dictlist
 
 
-# ユーザー名ごとに戦歴を表示
+# ユーザー名ごとに戦歴を表示 ("/result/{username}"だとresult_id取得処理とかぶる)
 @app.get("/result/fillter/{username}")
 async def get_filltered_record(username: str, db: Session = Depends(get_db)):
     records = CRUD.get_records_by_username(db, username)
