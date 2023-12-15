@@ -4,11 +4,17 @@ import sys
 
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 import CRUD, models, schemas, AI
 from setup_database import SessionLocal, engine
 from setup_dataset import Dataset
+
+
+# 新規インスタンス生成のたびにisCorrectを計算
+event.listen(schemas.PredictionCreate, 'after_insert', schemas.after_insert_listener)
+event.listen(schemas.RecordCreate, 'after_insert', schemas.after_insert_listener)
 
 
 # サーバー再起動のたびにモデル構築を防止
@@ -59,8 +65,6 @@ else:
 #    for i, p in enumerate([random.randint(0,1)]*100): # デバッグ用Toy予測
         prediction_data = schemas.PredictionCreate(quiz_id=i, answer=p)
         CRUD.create_prediction(db, prediction_data)
-        
-        CRUD.get_prediction(db, i).isCorrect = (self.answer == self.Quiz.fraudulent)
     db.close()
 
 # APIインスタンス作成
@@ -110,18 +114,18 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
     if CRUD.get_quiz(db, record.quiz_id) == None:
         raise HTTPException(status_code=404, detail="Quiz not found")
 
-    if not (record.user_answer == 'Real' or record.user_answer == 'Fake'):
+    if not (record.answer == 'Real' or record.answer == 'Fake'):
         raise HTTPException(status_code=400, detail="Invalid answer. Please submit 'Real' or 'Fake' in string format.")
 
     return CRUD.create_record(db=db, record_data=record)
 
 
 # AIとユーザーの勝敗を判定する
-def battle(user_answer, AI_answer, correct_answer):
+def battle(answer, AI_answer, correct_answer):
     # ユーザーの回答が正しいか判定
-    if user_answer == "Real" and correct_answer == False:
+    if answer == "Real" and correct_answer == False:
         result_user = True
-    elif user_answer == "Fake" and correct_answer == True:
+    elif answer == "Fake" and correct_answer == True:
         result_user = True
     else:
         result_user = False
@@ -156,11 +160,11 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     
     quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
 
-    result_battle = battle(record.user_answer, AI_answer, quiz_data.fraudulent)
+    result_battle = battle(record.answer, AI_answer, quiz_data.fraudulent)
     
     return {
         "result_battle": result_battle,
-        "user_answer": record.user_answer,
+        "answer": record.answer,
         "AI_answer": "Fake" if AI_answer else "Real",
         "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
     }
@@ -195,11 +199,11 @@ async def get_all_record(db: Session = Depends(get_db)):
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
+        record_dict["result_battle"] = battle(record.answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
         record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('user_answer', None)
+        record_dict.pop('answer', None)
         dictlist.append(record_dict)
 
     return dictlist
@@ -217,11 +221,11 @@ async def get_filltered_record(username: str, db: Session = Depends(get_db)):
     for record in records:
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.user_answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
+        record_dict["result_battle"] = battle(record.answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
         record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('user_answer', None)
+        record_dict.pop('answer', None)
         dict_records.append(record_dict)
 
     return dict_records

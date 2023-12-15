@@ -12,7 +12,7 @@ class Record(Base):
     created_at = Column(DateTime)
     quiz_id = Column(Integer, ForeignKey('quizs.id', ondelete="CASCADE"), index=True)
     username = Column(String, index=True)
-    user_answer = Column(String)
+    answer = Column(String)
     isCorrect = Column(Boolean)
 
     Quiz = relationship("Quiz", back_populates="records", uselist=False)

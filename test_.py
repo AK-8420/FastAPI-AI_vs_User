@@ -55,7 +55,7 @@ def test_post_collectID_1():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -69,7 +69,7 @@ def test_post_collectID_2():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -82,7 +82,7 @@ def test_post_collectFormat():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake", # Real is already tested
+            "answer": "Fake", # Real is already tested
             "username": "test"
         }
     )
@@ -96,7 +96,7 @@ def test_post_wrongID():
         "/quiz",
         json={
             "quiz_id": quiz_id,
-            "user_answer": "Real",
+            "answer": "Real",
             "username": "test"
         }
     )
@@ -107,7 +107,7 @@ def test_post_wrongFormat():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "hogehoge",
+            "answer": "hogehoge",
             "username": "test"
         }
     )
@@ -122,7 +122,7 @@ def test_get_result_collectID():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake",
+            "answer": "Fake",
             "username": "test"
         }
     )
@@ -150,7 +150,7 @@ def test_get_results_by_username():
         "/quiz",
         json={
             "quiz_id": 1,
-            "user_answer": "Fake",
+            "answer": "Fake",
             "username": "test"
         }
     )
