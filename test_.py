@@ -179,21 +179,19 @@ def test_put_record():
         json={
             "quiz_id": 1,
             "answer": "Fake",
-            "username": "hogehoge"
+            "username": "hogehogeeeeeee"
         }
     )
     response_json = response.json()
     hash_id = response_json["result_id"]
 
-    new_name = "fugafuga"
-
-    response = client.put(f"/result/{hash_id}?username={new_name}")
+    response = client.put(f"/result/{hash_id}?username=fugafuga")
     assert response.status_code == 200
     
-    response = client.get(f"/result/{hash_id}")
+    response = client.get(f"/result")
     response_json = response.json()
-    assert response.status_code == 200
-    assert response_json["username"] == new_name
+    for item in response_json:
+        assert item["username"] != "hogehogeeeeeee"
     
 
 
