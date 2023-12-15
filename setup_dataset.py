@@ -108,8 +108,10 @@ class Dataset:
         df.drop("job_id", axis=1, inplace=True) # job_id = 0,1,2,... 学習価値なし
         
         test_size = 50
-        df.drop(index=df.index[200:], inplace=True) # デバッグ用：データ量削減
-        test_size = 3                               # デバッグ用：データ量削減
+        """ デバッグ用：データ量削減
+        df.drop(index=df.index[200:], inplace=True)
+        test_size = 3
+        """
 
         # 偽文書と本物文書
         Fakedf = df[ df['fraudulent'] == 1 ]
