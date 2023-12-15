@@ -1,6 +1,7 @@
 import uuid
+from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import orm
 
 # 容量削減のためにintをboolに変換
@@ -18,12 +19,12 @@ def str2bool(text: str):
 
 
 class RecordBase(BaseModel):
-    result_id: str = "Not required"
-    created_at: datetime = None
+    result_id: Optional[str] = Field("Not required")
+    created_at: Optional[datetime]
     quiz_id: int
     username: str = "Unknown user"
     user_answer: str = "Real or Fake"
-    isCorrect: bool = None
+    isCorrect: Optional[bool]
 
 
 class RecordCreate(RecordBase):
@@ -47,7 +48,7 @@ class Record(RecordBase):
 
 class PredictionBase(BaseModel):
     quiz_id: int # ズレ防止のためにid手動指定
-    isCorrect: bool = None
+    isCorrect: Optional[bool]
 
 
 class PredictionCreate(PredictionBase):
