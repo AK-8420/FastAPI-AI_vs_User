@@ -168,3 +168,57 @@ def test_get_results_by_wrong_username():
     response = client.get(f"/result/fillter/Not-Exist-Username")
     response_json = response.json()
     assert response_json == []
+
+
+#==================================
+# 戦歴編集
+#==================================
+def test_put_record():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "answer": "Fake",
+            "username": "hogehoge"
+        }
+    )
+    response_json = response.json()
+    hash_id = response_json["result_id"]
+
+    new_name = "fugafuga"
+
+    response = client.put(f"/result/{hash_id}?username={new_name}")
+    assert response.status_code == 200
+    
+    response = client.get(f"/result/{hash_id}")
+    response_json = response.json()
+    assert response.status_code == 200
+    assert response_json["username"] == new_name
+    
+
+
+#==================================
+# 戦歴削除
+#==================================
+def test_delete_record_collectID():
+    response = client.post(
+        "/quiz",
+        json={
+            "quiz_id": 1,
+            "answer": "Fake",
+            "username": "test"
+        }
+    )
+    response_json = response.json()
+    hash_id = response_json["result_id"]
+
+    response = client.delete(f"/result/{hash_id}")
+    assert response.status_code == 200
+
+    response = client.get(f"/result/{hash_id}")
+    assert response.status_code == 404
+
+def test_delete_record_wrongID():
+    hash_id = "not-exist-ID"
+    response = client.delete(f"/result/{hash_id}")
+    assert response.status_code == 404
