@@ -78,8 +78,8 @@ def get_db():
 @app.get("/")
 async def root(db: Session = Depends(get_db)):
     return {
-        "AI_accuracy": CRUD.get_prediction_accuracy(db),
-        "Users_accuracy": CRUD.get_records_accuracy(db),
+        "AI_accuracy": round(float(CRUD.get_prediction_accuracy(db)), 3),
+        "Users_accuracy": round(float(CRUD.get_records_accuracy(db)), 3),
     }
 
 
@@ -103,7 +103,7 @@ async def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
 
 
 # ユーザーの回答を送信
-@app.post("/quiz", response_model=schemas.Record)
+@app.post("/quiz")
 async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db)):
     if CRUD.get_quiz(db, record.quiz_id) == None:
         raise HTTPException(status_code=404, detail="Quiz not found")
@@ -150,6 +150,7 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
         "AI_answer": schemas.bool2str(AI_answer),
         "correct_answer": schemas.bool2str(quiz_data.fraudulent)
     }
+
 
 # ユーザー名を編集（ユーザー名はクエリで渡す）
 @app.put("/result/{result_id}", response_model=schemas.Record)
