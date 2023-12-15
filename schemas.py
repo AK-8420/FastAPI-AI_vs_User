@@ -17,6 +17,12 @@ def str2bool(text: str):
     else:
         return True
 
+def bool2str(answer: bool):
+    if answer == True:
+        return "Fake"
+    else:
+        return "Real"
+
 
 
 class RecordBase(BaseModel):

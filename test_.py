@@ -132,7 +132,7 @@ def test_get_result_collectID():
     response = client.get(f"/result/{hash_id}")
     response_json = response.json()
     assert response.status_code == 200
-    assert isinstance(response_json["result_battle"], str)
+    assert isinstance(response_json["Battle_result"], str)
 
 def test_get_result_wrongID():
     hash_id = "not-exist-ID"

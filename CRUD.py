@@ -59,8 +59,8 @@ def get_records_accuracy(db: Session):
     return total_accuracy
 
 
-def get_prediction(db: Session, prediction_id: int):
-    return db.query(Prediction).filter(Prediction.quiz_id == prediction_id).first()
+def get_prediction(db: Session, quiz_id: int):
+    return db.query(Prediction).filter(Prediction.quiz_id == quiz_id).first()
 
 def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
     new_prediction = Prediction(**prediction_data.model_dump())
@@ -69,8 +69,8 @@ def create_prediction(db: Session, prediction_data: schemas.PredictionCreate):
     db.refresh(new_prediction)
     return new_prediction
 
-def delete_prediction(db: Session, prediction_id: int):
-    instance = get_prediction(db, prediction_id)
+def delete_prediction(db: Session, quiz_id: int):
+    instance = get_prediction(db, quiz_id)
     return db.delete(instance)
 
 def get_prediction_accuracy(db: Session):

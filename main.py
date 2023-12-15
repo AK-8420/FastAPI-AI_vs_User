@@ -121,27 +121,11 @@ async def post_answer(record: schemas.RecordCreate, db: Session = Depends(get_db
 
 
 # AIとユーザーの勝敗を判定する
-def battle(answer, AI_answer, correct_answer):
-    # ユーザーの回答が正しいか判定
-    if answer == "Real" and correct_answer == False:
-        result_user = True
-    elif answer == "Fake" and correct_answer == True:
-        result_user = True
-    else:
-        result_user = False
-        
-    # AIの回答が正しいか判定
-    if AI_answer == False and correct_answer == False:
-        result_AI = True
-    elif AI_answer == True and correct_answer == True:
-        result_AI = True
-    else:
-        result_AI = False
-    
+def battle(user_isCorrect: bool, AI_isCorrect: bool):
     # 勝敗判定
-    if result_user == True and result_AI == False:
+    if user_isCorrect == True and AI_isCorrect == False:
         return "Win"
-    elif result_user == False and result_AI == True:
+    elif user_isCorrect == False and AI_isCorrect == True:
         return "Lose"
     else:
         return "Draw"
@@ -153,23 +137,26 @@ async def get_result(result_id: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)
     if record == None:
         raise HTTPException(status_code=404, detail="Record not found")
-
-    AI_answer = record.Quiz.prediction.answer
-    if AI_answer == None:
-        raise HTTPException(status_code=404, detail="Prediction by AI not found")
     
-    quiz_data = CRUD.get_quiz(db, quiz_id=record.quiz_id)
+    quiz_data = CRUD.get_quiz(db, record.quiz_id)
+    if quiz_data == None:
+        raise HTTPException(status_code=404, detail="Quiz not found.")
 
-    result_battle = battle(record.answer, AI_answer, quiz_data.fraudulent)
+    AI_answer = CRUD.get_prediction(db, record.quiz_id)
+    if AI_answer == None:
+        raise HTTPException(status_code=404, detail="Prediction by AI is not found.")
+    
+
+    result_battle = battle(record.isCorrect, AI_answer.isCorrect)
     
     return {
-        "result_battle": result_battle,
-        "answer": record.answer,
-        "AI_answer": "Fake" if AI_answer else "Real",
-        "correct_answer": "Fake" if quiz_data.fraudulent else "Real"
+        "Battle_result": result_battle,
+        "User_answer": record.answer,
+        "AI_answer": schemas.bool2str(AI_answer),
+        "correct_answer": schemas.bool2str(quiz_data.fraudulent)
     }
 
-# ユーザー名を編集（クエリで渡す）
+# ユーザー名を編集（ユーザー名はクエリで渡す）
 @app.put("/result/{result_id}", response_model=schemas.Record)
 async def put_record(result_id: str, username: str, db: Session = Depends(get_db)):
     record = CRUD.get_record(db, result_id)
@@ -199,11 +186,12 @@ async def get_all_record(db: Session = Depends(get_db)):
     for record in db.query(models.Record).all() :
         record_dict = record.__dict__
         
-        record_dict["result_battle"] = battle(record.answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
+        AI_answer = CRUD.get_prediction(db, record_dict["quiz_id"])
+        record_dict["Battle_result"] = battle(record_dict["isCorrect"], AI_answer.isCorrect)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
-        record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('answer', None)
+        record_dict.pop('Quiz', None)       # 外部に答えがばれないように除外
+        record_dict.pop('answer', None)     # 外部に答えがばれないように除外
         dictlist.append(record_dict)
 
     return dictlist
@@ -220,12 +208,12 @@ async def get_filltered_record(username: str, db: Session = Depends(get_db)):
 
     for record in records:
         record_dict = record.__dict__
-        
-        record_dict["result_battle"] = battle(record.answer, record.Quiz.prediction.answer, record.Quiz.fraudulent)
+
+        AI_answer = CRUD.get_prediction(db, record_dict["quiz_id"])
+        record_dict["Battle_result"] = battle(record_dict["isCorrect"], AI_answer.isCorrect)
 
         record_dict.pop('result_id', None)  # 削除パスワードであるresult_idをかならず除外
-        record_dict.pop('Quiz', None)       # 答えがばれないように除外
-        record_dict.pop('answer', None)
-        dict_records.append(record_dict)
+        record_dict.pop('Quiz', None)       # 外部に答えがばれないように除外
+        record_dict.pop('answer', None)     # 外部に答えがばれないように除外
 
     return dict_records
